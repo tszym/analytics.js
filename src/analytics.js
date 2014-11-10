@@ -31,6 +31,7 @@ var analytics = {
 
 // import "query.js"
 // import "data.js"
+// import "data.cube.js"
 // import "data.measure.js"
 // import "data.dimension.js"
 // import "state.js"
