@@ -1,5 +1,8 @@
 analytics.data.dimension = function (id, caption, type, hierarchy, levels, properties) {
 
+  // returned object
+  var _dimension = {};
+
   var _id         = id;
   var _caption    = caption;
   var _hierarchy  = hierarchy;
@@ -10,14 +13,13 @@ analytics.data.dimension = function (id, caption, type, hierarchy, levels, prope
   var _membersStack = []; // stack of all slice done on this hierarchy
   var _filters      = []; // list of selected elements on the screen for the last level of the stack
 
+  var _colors = ["#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"];
 
-  // _crossfilter = undefined; // crossfilter element for this dimension
-  // _crossfilterGroup = undefined; // crossfilter element for the group of this dimension
+  _dimension._crossfilterDimension = null; // crossfilter element for this dimension
+  _dimension._crossfilterGroups = {}; // crossfilter element for the group of this dimension
 
   var _aggregated = false;
 
-  // returned object
-  var _dimension = {};
 
   _dimension.id = function() {
     return _id;
@@ -110,6 +112,21 @@ analytics.data.dimension = function (id, caption, type, hierarchy, levels, prope
     if (_filters.indexOf(element) >= 0)
       _filters.push(element);
     return _dimension;
+  };
+
+
+  _dimension.colors = function (colors) {
+    if (!arguments.length) return _colors;
+    _colors = colors;
+    return _dimension;
+  };
+
+  _dimension.crossfilterDimension = function () {
+    return analytics.data.getCrossfilterDimension(_dimension, _filters);
+  };
+
+  _dimension.crossfilterGroup = function (extraMeasures) {
+    return analytics.data.getCrossfilterGroup(_dimension, extraMeasures);
   };
 
 
