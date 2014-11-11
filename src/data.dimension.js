@@ -1,44 +1,58 @@
-analytics.data.dimension = function (id, caption, hierarchy) {
+analytics.data.dimension = function (id, caption, type, hierarchy, levels, properties) {
 
-  var _id = id;
-  var _caption = caption;
-  var _hierarchy = hierarchy;
+  var _id         = id;
+  var _caption    = caption;
+  var _hierarchy  = hierarchy;
+  var _type       = type;
+  var _levels     = levels;
+  var _properties = properties;
+
   var _membersStack = []; // stack of all slice done on this hierarchy
-  var _membersSelected = []; // list of selected elements on the screen for the last level of the stack
-  // _properties = false; // do we need to get the properties for this dimension ? TODO do not use this
+  var _filters      = []; // list of selected elements on the screen for the last level of the stack
+
+
   // _crossfilter = undefined; // crossfilter element for this dimension
   // _crossfilterGroup = undefined; // crossfilter element for the group of this dimension
+
   var _aggregated = false;
 
   // returned object
   var _dimension = {};
 
-  _dimension.id = function(id) {
-    if (!arguments.length) return _id;
-    _id = id;
-    return _dimension;
+  _dimension.id = function() {
+    return _id;
   };
 
-  _dimension.caption = function(caption) {
-    if (!arguments.length) return _caption;
-    _caption = caption;
-    return _dimension;
+  _dimension.caption = function() {
+    return _caption;
   };
 
-  _dimension.hierarchy = function(hierarchy) {
-    if (!arguments.length) return _hierarchy;
-    _hierarchy = hierarchy;
-    return _dimension;
+  _dimension.hierarchy = function() {
+    return _hierarchy;
+  };
+
+  _dimension.levels = function() {
+    return _levels;
+  };
+
+  _dimension.type = function() {
+    return _type;
+  };
+
+  _dimension.properties = function() {
+    return _properties;
+  };
+
+  _dimension.membersStack = function () {
+    return _membersStack;
   };
 
   _dimension.currentLevel = function() {
     return _membersStack.length - 1;
   };
 
-  // TODO
   _dimension.maxLevel = function() {
-    // Query.getLevels(this.schema, this.cube, _dimension.id(), _dimension.hierarchy())).length
-    return 3;
+    return _levels.length - 1;
   };
 
   _dimension.getGeoProperty = function (argument) {
@@ -71,9 +85,33 @@ analytics.data.dimension = function (id, caption, hierarchy) {
     return (_dimension.currentLevel() > 0);
   };
 
-  _dimension.equals = function (other) {
-    return (typeof other.id == "function") && (_id === other.id());
+  _dimension.nbRollPossible = function () {
+    return _dimension.currentLevel();
   };
+
+
+  _dimension.filters = function (filters) {
+    if (!arguments.length) return _filters;
+    _filters = filters;
+    return _dimension;
+  };
+
+  _dimension.filter = function (element, add) {
+    return add ? _dimension.addFilter(element) : _dimension.removeFilter(element);
+  };
+
+  _dimension.addFilter = function (element) {
+    if (_filters.indexOf(element) < 0)
+      _filters.push(element);
+    return _dimension;
+  };
+
+  _dimension.removeFilter = function (element) {
+    if (_filters.indexOf(element) >= 0)
+      _filters.push(element);
+    return _dimension;
+  };
+
 
   /**
    * Indicate if a dimension is aggregated
@@ -84,6 +122,12 @@ analytics.data.dimension = function (id, caption, hierarchy) {
     if (!arguments.length) return _aggregated;
     _aggregated = aggregate;
   };
+
+
+  _dimension.equals = function (other) {
+    return (typeof other.id == "function") && (_id === other.id());
+  };
+
 
   return _dimension;
 };
