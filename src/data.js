@@ -39,6 +39,34 @@ analytics.data = (function(dataCrossfilter) {
   }
 
   /**
+   * Set the crossfilter dataset and dispose of all previous dimensions and groups because they are linked to old data.
+   *
+   * @private
+   * @param {string} JSON data
+   * @return {crossfilter} crosfilter dataset
+   */
+  function setCrossfilterData(data) {
+    var dimensions = analytics.state.dimensions();
+
+    for (var index in dimensions) {
+      if (dimensions[index].crossfilterGroup !== undefined) {
+        dimensions[index].crossfilterGroup.dispose();
+        dimensions[index].crossfilterGroup = undefined;
+      }
+      if (dimensions[index].crossfilter !== undefined) {
+        dimensions[index].crossfilter.dispose();
+        dimensions[index].crossfilter = undefined;
+      }
+    }
+    if (isClientSideAggrPossible())
+      _dataCrossfilter = crossfilter(data);
+    else
+      _dataCrossfilter = crossfilterServer(data);
+
+    return _dataCrossfilter;
+  }
+
+  /**
    * TODO
    */
   function getDataClientAggregates() {
