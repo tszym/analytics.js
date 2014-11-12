@@ -8,6 +8,7 @@ analytics.data.dimension = function (id, caption, hierarchy) {
   // _properties = false; // do we need to get the properties for this dimension ? TODO do not use this
   // _crossfilter = undefined; // crossfilter element for this dimension
   // _crossfilterGroup = undefined; // crossfilter element for the group of this dimension
+  var _aggregated = false;
 
   // returned object
   var _dimension = {};
@@ -72,6 +73,16 @@ analytics.data.dimension = function (id, caption, hierarchy) {
 
   _dimension.equals = function (other) {
     return (typeof other.id == "function") && (_id === other.id());
+  };
+
+  /**
+   * Indicate if a dimension is aggregated
+   *
+   * @param {boolean} aggregate
+   */
+  _dimension.aggregated = function (aggregate) {
+    if (!arguments.length) return _aggregated;
+    _aggregated = aggregate;
   };
 
   return _dimension;
