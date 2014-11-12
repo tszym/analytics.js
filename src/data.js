@@ -67,10 +67,46 @@ analytics.data = (function(dataCrossfilter) {
   }
 
   /**
-   * TODO
+   * Get the data for client side agregates
+   *
+   * @private
+   * @return {Object} crossfilter dataset
    */
   function getDataClientAggregates() {
-    return {};
+    Query.clear();
+
+    // set cube
+    Query.drill(analytics.state.cube().id());
+
+    // set dimensions to get
+    var dimensions = analytics.state.dimensions();
+    var hierachiesList = [];
+
+    for (var index in dimensions) {
+      var dimension = dimensions[index];
+
+      if (!dimension.aggregated()) {
+        var members = dimension.getLastSlice();
+        var hierarchy = dimension.hierarchy();
+        hierachiesList.push(hierarchy);
+        Query.slice(hierarchy, Object.keys(members));
+      } else {
+        while(dimension.currentLevel() > 0) {
+          dimension.removeLastSlice();
+        }
+      }
+    }
+    Query.dice(hierachiesList);
+
+    _measuresLoaded = analytics.display.getExtraMeasuresUsed();
+    _measuresLoaded.push(analytics.state.measure().id());
+    for (var i in _measuresLoaded) {
+      Query.push(_measuresLoaded[i]);
+    }
+    // get data
+    var data = Query.execute();
+
+    return setCrossfilterData(data);
   }
 
   /**
