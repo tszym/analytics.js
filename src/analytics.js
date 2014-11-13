@@ -1,3 +1,28 @@
+/**
+## `analytics` namespace
+
+### analytics.csts
+
+`analytics.csts` is a deep map containing various constants used by _analytics.js_. It contains mostly CSS selectors and texts (for internationalization).
+
+The structure is as follows:
+
+```js
+analytics.csts = {
+  resizeDelay : 350,
+  css : { .. }, // CSS selectors
+  txts : {
+    charts : { // name of the charts
+      chartId : 'Chart name',
+      ...
+    },
+    factSelector : { ... } // titles used in the fact selector
+  },
+  tips : { // tips to show on the interface
+    charts : {} // tips for the charts
+  }
+}
+**/
 var analytics = {
   version: '%VERSION%',
   csts : {
@@ -27,6 +52,30 @@ var analytics = {
       }
     }
   }
+};
+
+/**
+### analytics.init(queryAPI, [state])
+
+This function will initialize the whole component. Prior to it, you can set some constants.
+
+For a standard user of the package, it is the only function you should call.
+
+Parameters:
+* Object `queryAPI`: an API component to query the OLAP database
+* Object `state` (optional): The state of the interface, that was retrived with `analytics.state()`, to restore an analysis
+**/
+analytics.init = function (queryAPI, state) {
+  analytics.query.queryAPI(queryAPI);
+  if (state)
+    analytics.state(state);
+
+  analytics.query.queryAPI(queryAPI);
+  analytics.display.init();
+  analytics.state.initMeasure();
+  analytics.state.initDimensions();
+  analytics.data.load();
+  analytics.display.initRender();
 };
 
 // import "query.js"
