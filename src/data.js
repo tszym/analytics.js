@@ -110,10 +110,41 @@ analytics.data = (function(dataCrossfilter) {
   }
 
   /**
-   * TODO
+   * Get the data for server side agregates
+   *
+   * @private
+   * @return {Object} crossfilter dataset
    */
   function getDataServerAggregates() {
-    return {};
+    var metadata = {
+      "api" : Query,
+      "schema" : analytics.state.schema(),
+      "cube" : analytics.state.cube().id(),
+      "measures" : [],
+      "dimensions" : {}
+    };
+
+    var i;
+
+    // set dimensions to get
+    var dimensions = analytics.state.dimensions();
+    for (i in dimensions) {
+      var dimension = dimensions[i];
+      metadata.dimensions[dimension.id()] = {
+        "hierarchy" : dimension.hierarchy(),
+        "level" : dimension.currentLevel(),
+        "members" : Object.keys(dimension.getLastSlice())
+      };
+    }
+
+    // set measures
+    _measuresLoaded = analytics.display.getExtraMeasuresUsed();
+    _measuresLoaded.push(analytics.state.measure());
+    for (i in _measuresLoaded) {
+      metadata.measures.push(_measuresLoaded[i].id());
+    }
+
+    return setCrossfilterData(metadata);
   }
 
   /**
