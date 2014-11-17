@@ -31,4 +31,5 @@ var analytics = {
 
 // import "data.dimension.js"
 // import "data.measure.js"
+// import "query.js"
 // import "state.js"
