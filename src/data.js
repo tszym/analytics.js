@@ -11,8 +11,6 @@ analytics.data = (function(dataCrossfilter) {
    *
    * @private
    * @return {int} number of combinations
-   *
-   * TODO TEST
    */
   function numberOfCrossedMembers() {
     var nb = 1;
@@ -31,8 +29,6 @@ analytics.data = (function(dataCrossfilter) {
    *
    * @private
    * @return {boolean} true if client side, false if server side
-   *
-   * TODO
    */
   function isClientSideAggrPossible() {
     return numberOfCrossedMembers() < 20000;
@@ -48,16 +44,19 @@ analytics.data = (function(dataCrossfilter) {
   function setCrossfilterData(data) {
     var dimensions = analytics.state.dimensions();
 
-    for (var index in dimensions) {
-      if (dimensions[index]._cfDim !== null) {
-        dimensions[index]._cfDim.dispose();
-        dimensions[index]._cfDim = null;
-      }
-      if (dimensions[index]._cfGrp !== null) {
-        dimensions[index]._cfGrp.dispose();
-        dimensions[index]._cfGrp = null;
-      }
+    for (var i in dimensions) {
+      // remove cf dimensions
+      if (dimensions[i]._crossfilterDimension !== null)
+        dimensions[i]._crossfilterDimension.dispose();
+      dimensions[i]._crossfilterDimension = null;
+
+      // remove cf groups
+      for (var j in dimensions[i]._crossfilterGroups)
+        dimensions[i]._crossfilterGroups[j].dispose();
+      dimensions[i]._crossfilterGroups = [];
     }
+
+    // create cf object
     if (isClientSideAggrPossible())
       _dataCrossfilter = crossfilter(data);
     else
@@ -90,19 +89,16 @@ analytics.data = (function(dataCrossfilter) {
         var hierarchy = dimension.hierarchy();
         hierachiesList.push(hierarchy);
         analytics.query.slice(hierarchy, Object.keys(members));
-      } else {
-        while(dimension.currentLevel() > 0) {
-          dimension.removeLastSlice();
-        }
       }
     }
     analytics.query.dice(hierachiesList);
 
     _measuresLoaded = analytics.display.getExtraMeasuresUsed();
-    _measuresLoaded.push(analytics.state.measure().id());
+    _measuresLoaded.push(analytics.state.measure());
     for (var i in _measuresLoaded) {
       analytics.query.push(_measuresLoaded[i].id());
     }
+
     // get data
     var data = analytics.query.execute();
 
@@ -163,10 +159,19 @@ analytics.data = (function(dataCrossfilter) {
     }
   };
 
-  _data.getCrossfilterDimension = function(dimension) {
+  _data.getCrossfilterDimension = function(dimension, filters) {
 
     if (dimension._crossfilterDimension === null) {
       dimension._crossfilterDimension = _dataCrossfilter.dimension(function(d) { return d[dimension.id()]; });
+      if (filters.length) {
+        dimension._crossfilterDimension.filterFunction(function (d) {
+          for(var i = 0; i < filters.length; i++) {
+            if (filters[i] == d)
+              return true;
+          }
+          return false;
+        });
+      }
     }
 
     return dimension._crossfilterDimension;
@@ -175,19 +180,19 @@ analytics.data = (function(dataCrossfilter) {
   _data.getCrossfilterGroup = function(dimension, measures) {
 
     // simple grouping
-    if (measures === null) {
+    if (!Array.isArray(measures) || measures.length === 0) {
       if (dimension._crossfilterGroups.default === undefined) {
         dimension._crossfilterGroups.default = dimension
           .crossfilterDimension()
           .group()
-          .reduceSum(function(d) { return d[that.measure]; });
+          .reduceSum(function(d) { return d[analytics.state.measure().id()]; });
       }
       return dimension._crossfilterGroups.default;
     }
 
     // if we have a custom list of measures, we compute the group
     else {
-      measuresToGroup = [analytics.state.measure.id()];
+      var measuresToGroup = [analytics.state.measure().id()];
       for (var i in measures)
         if (measuresToGroup.indexOf(measures[i].id()) < 0)
           measuresToGroup.push(measures[i].id());
