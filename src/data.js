@@ -73,10 +73,10 @@ analytics.data = (function(dataCrossfilter) {
    * @return {Object} crossfilter dataset
    */
   function getDataClientAggregates() {
-    Query.clear();
+    analytics.query.clear();
 
     // set cube
-    Query.drill(analytics.state.cube().id());
+    analytics.query.drill(analytics.state.cube().id());
 
     // set dimensions to get
     var dimensions = analytics.state.dimensions();
@@ -89,22 +89,22 @@ analytics.data = (function(dataCrossfilter) {
         var members = dimension.getLastSlice();
         var hierarchy = dimension.hierarchy();
         hierachiesList.push(hierarchy);
-        Query.slice(hierarchy, Object.keys(members));
+        analytics.query.slice(hierarchy, Object.keys(members));
       } else {
         while(dimension.currentLevel() > 0) {
           dimension.removeLastSlice();
         }
       }
     }
-    Query.dice(hierachiesList);
+    analytics.query.dice(hierachiesList);
 
     _measuresLoaded = analytics.display.getExtraMeasuresUsed();
     _measuresLoaded.push(analytics.state.measure().id());
     for (var i in _measuresLoaded) {
-      Query.push(_measuresLoaded[i]);
+      analytics.query.push(_measuresLoaded[i].id());
     }
     // get data
-    var data = Query.execute();
+    var data = analytics.query.execute();
 
     return setCrossfilterData(data);
   }
@@ -117,7 +117,7 @@ analytics.data = (function(dataCrossfilter) {
    */
   function getDataServerAggregates() {
     var metadata = {
-      "api" : Query,
+      "api" : analytics.query,
       "schema" : analytics.state.schema(),
       "cube" : analytics.state.cube().id(),
       "measures" : [],
