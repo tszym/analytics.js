@@ -29,9 +29,10 @@ var analytics = {
   }
 };
 
-// import "data.dimension.js"
-// import "data.measure.js"
 // import "query.js"
+// import "data.js"
+// import "data.measure.js"
+// import "data.dimension.js"
 // import "state.js"
 // import "display.factSelector.js"
 // import "charts.js"
