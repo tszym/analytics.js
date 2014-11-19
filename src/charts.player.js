@@ -16,6 +16,8 @@ analytics.charts.player = function (chart) {
   var _callback = function () { };
   var _chart = chart;
 
+  var _play = {};
+
   var _step = function() {
     if (_currentMember > _members.length - 1) {
       _callback();
@@ -36,10 +38,8 @@ analytics.charts.player = function (chart) {
 
     _currentMember++;
 
-    setTimeout(_step, _timeout);
+    setTimeout(_step, _play.timeout());
   };
-
-  var _play = {};
 
   /**
    * Return a boolean whether or not the player is running
@@ -56,7 +56,7 @@ analytics.charts.player = function (chart) {
    */
   _play.timeout = function(timeout) {
     if (!arguments.length) return _timeout;
-    _timeout = _timeout;
+    _timeout = timeout;
     return _play;
   };
 

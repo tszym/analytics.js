@@ -402,18 +402,21 @@ analytics.display = (function() {
       measuresMap[measureId] = analytics.data.measure(measureId, measures[measureId].caption);
     }
 
-    var sortSelect           = $('#chartparam-sort');
-    var typeSelect           = $('#chartparam-type');
-    var dimensionsSelects    = $('.chartparam-dimension');
-    var measuresSelects      = $('.chartparam-measure');
-    var sortContainer        = sortSelect       .parent().parent();
-    var dimensionsContainers = dimensionsSelects.parent().parent();
-    var measuresContainers   = measuresSelects  .parent().parent();
+    var sortSelect             = $('#chartparam-sort');
+    var typeSelect             = $('#chartparam-type');
+    var playerTimeoutSelect    = $('#chartparam-playerTimeout');
+    var dimensionsSelects      = $('.chartparam-dimension');
+    var measuresSelects        = $('.chartparam-measure');
+    var sortContainer          = sortSelect         .parent().parent();
+    var playerTimeoutContainer = playerTimeoutSelect.parent().parent();
+    var dimensionsContainers   = dimensionsSelects  .parent().parent();
+    var measuresContainers     = measuresSelects    .parent().parent();
 
     // hide all
-    sortContainer       .hide();
-    dimensionsContainers.hide();
-    measuresContainers  .hide();
+    sortContainer         .hide();
+    playerTimeoutContainer.hide();
+    dimensionsContainers  .hide();
+    measuresContainers    .hide();
 
     // Add dimensions & measures to selects
     dimensionsSelects.empty().append('<option value=""></option>');
@@ -430,6 +433,7 @@ analytics.display = (function() {
     // autoset infos
     typeSelect.val(chart.type());
     sortSelect.val(options.sort);
+    playerTimeoutSelect.val(options.playerTimeout);
     dimensionsSelects.each(function(i, el) {
       var dimension = chart.dimensions()[i];
       if (dimension)
@@ -443,9 +447,10 @@ analytics.display = (function() {
 
     // update form dynamically depending on type
     function updateForm(chartType, duration) {
-      var nbDims   = analytics.charts[chartType].params.nbDimensionsMax;
-      var nbMes    = analytics.charts[chartType].params.nbExtraMeasuresMax;
-      var showSort = analytics.charts[chartType].options.sort !== null;
+      var nbDims            = analytics.charts[chartType].params.nbDimensionsMax;
+      var nbMes             = analytics.charts[chartType].params.nbExtraMeasuresMax;
+      var showSort          = analytics.charts[chartType].options.sort !== null;
+      var showPlayerTimeout = analytics.charts[chartType].options.displayPlay;
 
       // show dimensions & measures
       dimensionsContainers.slice(0, nbDims).slideDown(duration);
@@ -458,6 +463,11 @@ analytics.display = (function() {
         sortContainer.slideDown(duration);
       else
         sortContainer.slideUp(duration);
+
+      if (showPlayerTimeout)
+        playerTimeoutContainer.slideDown(duration);
+      else
+        playerTimeoutContainer.slideUp(duration);
 
       // disable impossibles dimensions & measures
       dimensionsSelects.children('option').removeAttr('disabled');
@@ -480,10 +490,11 @@ analytics.display = (function() {
       $('#chartparams').modal('hide');
 
       var options = {
-        dimensions : [],
-        measures   : [],
-        sort       : sortSelect.val(),
-        type       : typeSelect.val()
+        dimensions    : [],
+        measures      : [],
+        sort          : sortSelect.val(),
+        type          : typeSelect.val(),
+        playerTimeout : playerTimeoutSelect.val(),
       };
       dimensionsSelects.each(function(i, el) {
         var dimension = dimensionsMap[$(el).val()];
@@ -560,6 +571,15 @@ analytics.display = (function() {
     if (analytics.charts[options.type].options.sort !== null && chart.options().sort != options.sort) {
       chart.setOption("sort", options.sort);
       doRedraw = true;
+    }
+
+    if (analytics.charts[options.type].options.displayPlay && chart.options().playerTimeout != options.playerTimeout) {
+      if (options.playerTimeout < 50)
+        options.playerTimeout = 50;
+      chart.setOption("playerTimeout", options.playerTimeout);
+      if (chart.player() !== undefined) {
+        chart.player().timeout(options.playerTimeout);
+      }
     }
 
     // Update data

@@ -105,6 +105,10 @@ analytics.charts.chart = (function () {
       return _chart;
     };
 
+    _chart.player = function () {
+      return _player;
+    };
+
     // display main functions
     _chart.build = function () {
       if (!_chart.element()) {
