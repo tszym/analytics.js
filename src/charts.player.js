@@ -28,10 +28,8 @@ analytics.charts.player = function (chart) {
       return;
     }
 
-    analytics.display.updateFilters(_dimension, _members[_currentMember]);
     _chart.element().filter(_members[_currentMember]);
     if (_currentMember - 1  >= 0) {
-      analytics.display.updateFilters(_dimension, _members[_currentMember - 1]);
       _chart.element().filter(_members[_currentMember - 1]);
     }
     dc.redrawAll();
