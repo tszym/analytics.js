@@ -11,11 +11,6 @@ analytics.display = (function() {
   var _resizableColumns;
   var _savedColumnWidths;
 
-  var _options = {
-    factCubesIntro    : 'Cubes available:',
-    factMeasuresIntro : 'Measures available:'
-  };
-
   display.charts = function () {
     return Array.prototype.concat.apply([], _charts);
   };
@@ -117,7 +112,7 @@ analytics.display = (function() {
   }
 
   display.showFactSelector = function(cubesAndMeasures, cube, measure, callback) {
-    analytics.display.factSelector.init(analytics.csts.css.factSelector, _options.factCubesIntro, _options.factMeasuresIntro);
+    analytics.display.factSelector.init(analytics.csts.css.factSelector, analytics.csts.txts.factSelector.cubes, analytics.csts.txts.factSelector.measures);
     analytics.display.factSelector.setMetadata(cubesAndMeasures);
     analytics.display.factSelector.setCallback(callback);
     analytics.display.factSelector.setSelectedCube(cube.id());
