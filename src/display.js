@@ -413,6 +413,16 @@ analytics.display = (function() {
     dimensionsContainers  .hide();
     measuresContainers    .hide();
 
+    // add chart types once
+    if (!typeSelect.children('option').length) {
+      for (var chartType in analytics.charts) {
+        if (typeof analytics.charts[chartType].arePossibleDimensions == 'function' && chartType != 'chart') {
+          var caption = analytics.csts.txts.charts[chartType] ? analytics.csts.txts.charts[chartType] : chartType;
+          typeSelect.append('<option value="'+chartType+'">'+caption+'</option>');
+        }
+      }
+    }
+
     // Add dimensions & measures to selects
     dimensionsSelects.empty().append('<option value=""></option>');
     measuresSelects  .empty().append('<option value=""></option>');
