@@ -1,24 +1,197 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <title>crossfilter-server.js</title>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Disabling responsiveness
+    <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+    <title> Analytics - example.com </title>
 
-    <meta charset="UTF-8">
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/assets.min.css" rel="stylesheet"/>
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/ext-compatibility.css" rel="stylesheet" />
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/base.css" rel="stylesheet" />
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/dc.css">
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/analysis_view.css">
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/pnotify.custom.min.css">
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+  </head>
 
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-  <script src="js/crossfilter-server.js"></script>
-</head>
-<body>
+  <body class="analytics">
 
-  <div class="container">
 
-    <h1>Crossfilter server</h1>
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header col-md-2">
+          <a class="navbar-brand" href="/">GeoNode</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active">
+              <a href="#">Analytics</a>
+            </li>
+            <li id="nav_layers">
+              <a href="#">Layers</a>
+            </li>
+            <li id="nav_maps">
+              <a href="#">Maps</a>
+            </li>
+            <li id="nav_documents">
+              <a href="#">Documents</a>
+            </li>
+            <li id="nav_people">
+              <a href="#">People</a>
+            </li>
+            <li id="nav_groups">
+              <a href="#">Groups</a>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
 
-    <p><strong>Crossfilter server</strong> is a JavaScript class that implements the interfaces of <a href="https://github.com/square/crossfilter">crossfilter</a> but uses <a href="https://github.com/loganalysis/solap4py">solap4py</a> (through <a href="https://github.com/loganalysis/solap4py-js">solap4py-js</a>) to compute filters and agregates on an OLAP cube.</p>
+
+
+  <div id="wrap">
+
+    <div class="modal fade" id="modal_analysis" style="display:none">
+      <form id="permission_form" accept-charset="UTF-8" method="post" class="modal-form" action="/analytics/new/data/">
+        <div class="modal-dialog modal-content">
+          <div class="modal-header">
+            <a class="close" data-dismiss="modal">×</a>
+            <h3>Save Analysis</h3>
+          </div>
+          <div class="modal-body" id="permissions-body" >
+            <div class="control-group">
+              <label class="control-label"><strong>Titre:</strong></label>
+              <div class="controls">
+                <input type="text" name="title" class="user-select" id="title-save" />
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label"><strong>Résumé:</strong></label>
+              <div class="controls">
+                <textarea name="abstract" rows="8" id="abstract-save"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a href="#" class="btn btn-default" data-dismiss="modal">Annuler</a>
+            <a href="#" class="btn btn-primary" id="analysis_submit">Enregistrer</a>
+          </div>
+        </div>
+      </form>
+    </div>
+
+
+
+<div class="modal fade" id="chartparams" style="display:none;">
+  <div class="modal-dialog modal-content">
+    <div class="modal-header">
+      <a class="close" data-dismiss="modal">×</a>
+      <h3>Chart parameters</h3>
+    </div>
+    <div class="modal-body modal-body form-horizontal">
+
+      <div class="form-group">
+        <label for="chartparam-type" class="col-sm-3 control-label">Type:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-type">
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-dimension" class="col-sm-3 control-label">Dimension:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-dimension0" class="chartparam-dimension">
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-measure0" class="col-sm-3 control-label">X axis:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-measure0" class="chartparam-measure">
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-measure1" class="col-sm-3 control-label">Y axis:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-measure1" class="chartparam-measure">
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-measure2" class="col-sm-3 control-label">Z axis:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-measure2" class="chartparam-measure">
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-sort" class="col-sm-3 control-label">Sort by:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-sort">
+            <option value="key">Alphabetical order</option>
+            <option value="valuedesc">Value (desc)</option>
+            <option value="valueasc">Value (asc)</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn btn-default" data-dismiss="modal">Annuler</a>
+      <a href="#" class="btn btn-primary" id="chartparams-set">Update chart</a>
+    </div>
 
   </div>
+</div>
+    <div id="toolbox">
+      <div class="pull-right">
+        <a id="reset" class="btn btn-default btn-md" href="#"><i class="fa fa-refresh"></i> Reset Filters</a>
+        <a id="resize" class="btn btn-default"><i class="fa fa-arrows-v fa-nomargin"></i></a>
+        <a href="#modal_analysis" class="btn btn-primary" data-toggle="modal" disabled="disabled">Save Analysis</a>
+      </div>
+      <div id="fact-selector">&nbsp;</div>
+    </div>
+
+    <div id="columns">
+      <div class="chart-columns" id="left-pane"></div>
+      <div class="chart-columns" id="middle-pane"></div>
+      <div class="chart-columns" id="right-pane"></div>
+    </div>
+  </div>
+
+  <script src="/spec/dependancies/_jquery-2.1.1.min.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/jquery-ui.min.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/d3.v3.min.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/crossfilter.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/crossfilter-server.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/dc.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/wicket.js" type="application/javascript" charset="utf-8"></script>
+  <script src="/spec/dependancies/Save.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/pnotify.custom.min.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/jquery.resizableColumns.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/bootstrap.min.js" type="application/javascript"></script>
+  <script src="js/cube.js" type="application/javascript"></script>
+  <script src="js/analytics.test.js" type="application/javascript" charset="utf-8"></script>
+  <script>
+  /*analytics.state({"schema":"Olap","cube":"C","measure":"E","columnWidths":{"left-pane":25.04,"middle-pane":50,"right-pane":24.96},"dimensions":[{"id":"[Zone]","hierarchy":"Z1","filters":[],"properties":["Geom"],"membersStack":[["BE","DE","NL","LU","UK"]]},{"id":"[Time]","hierarchy":"T1","filters":[],"properties":[],"membersStack":[["2010","2011","2012","2013"]]},{"id":"[Product]","hierarchy":"P1","filters":[],"properties":[],"membersStack":[["F","NC"]]}],"charts":[[],[{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]},{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]},{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]}],[{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]},{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]}]]});*/
+  analytics.init(generateAPI([c]));
+
+  Save.init('#modal_analysis', '#title-save', '#abstract-save');
+  $("#permission_form").submit(function() { return false; });
+
+  $("#analysis_submit").click(function () {
+    Save.save(this, Display.getState());
+  });
+  </script>
 </body>
 </html>
