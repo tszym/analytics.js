@@ -34,6 +34,7 @@ var analytics = {
 // import "data.cube.js"
 // import "data.measure.js"
 // import "data.dimension.js"
+// import "data.property.js"
 // import "state.js"
 // import "display.factSelector.js"
 // import "charts.js"
