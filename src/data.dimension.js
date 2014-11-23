@@ -41,8 +41,7 @@ analytics.data.dimension = function (id, caption, hierarchy) {
   };
 
   _dimension.getGeoProperty = function (argument) {
-    // TODO
-    return "geom";
+    return analytics.query.getGeoProperty(analytics.state.schema(), analytics.state.cube().id(), _dimension.id(), _dimension.hierarchy());
   };
 
   _dimension.addSlice = function (members) {
@@ -57,6 +56,10 @@ analytics.data.dimension = function (id, caption, hierarchy) {
 
   _dimension.getLastSlice = function () {
     return _membersStack[_membersStack.length - 1];
+  };
+
+  _dimension.getSlice = function (level) {
+    return _membersStack[level];
   };
 
   _dimension.isDrillPossible = function () {
