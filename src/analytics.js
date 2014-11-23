@@ -28,12 +28,14 @@ var analytics = {
   csts : {
     resizeDelay : 350,
     css : {
+      header           : '.navbar',
       columnsContainer : '#columns',
       columns          : '.chart-columns',
       charts           : '.chart',
       chartsClass      : 'chart',
       factSelector     : '#fact-selector',
       reset            : '#reset',
+      resize           : '#resize',
       zoom             : 'zoom'
     },
     txts : {

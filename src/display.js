@@ -19,6 +19,36 @@ analytics.display = (function() {
     return _charts;
   };
 
+  function initButtons () {
+
+    // reset button
+    $(analytics.csts.css.reset).click(function() {
+        dc.filterAll();
+        display.redraw();
+      }
+    );
+
+    // resize button
+    var paddingTopInit = $('body').css('padding-top');
+    var headerInitHeight = $(analytics.csts.css.header).height();
+    var interfaceInitTop = $(analytics.csts.css.columns).cssUnit('top'); // ex : [100, 'px']
+
+    $(analytics.csts.css.resize).click(function() {
+      $(analytics.csts.css.header).toggle();
+
+      if ($(analytics.csts.css.header).is(':hidden')) {
+        $(analytics.csts.css.columns).css('top', interfaceInitTop[0] - headerInitHeight + interfaceInitTop[1]);
+        $('body').css('padding-top', '0');
+      }
+      else {
+        $(analytics.csts.css.columns).css('top', interfaceInitTop.join(''));
+        $('body').css('padding-top', paddingTopInit);
+      }
+
+      resize();
+    });
+  }
+
   /**
    * Initialize the columns resize behavior
    */
@@ -56,6 +86,7 @@ analytics.display = (function() {
 
   display.init = function () {
     initCharts();
+    initButtons();
     initResize();
   };
 
