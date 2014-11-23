@@ -49,13 +49,13 @@ analytics.data = (function(dataCrossfilter) {
     var dimensions = analytics.state.dimensions();
 
     for (var index in dimensions) {
-      if (dimensions[index].crossfilterGroup !== undefined) {
-        dimensions[index].crossfilterGroup.dispose();
-        dimensions[index].crossfilterGroup = undefined;
+      if (dimensions[index]._cfDim !== null) {
+        dimensions[index]._cfDim.dispose();
+        dimensions[index]._cfDim = null;
       }
-      if (dimensions[index].crossfilter !== undefined) {
-        dimensions[index].crossfilter.dispose();
-        dimensions[index].crossfilter = undefined;
+      if (dimensions[index]._cfGrp !== null) {
+        dimensions[index]._cfGrp.dispose();
+        dimensions[index]._cfGrp = null;
       }
     }
     if (isClientSideAggrPossible())
@@ -132,11 +132,61 @@ analytics.data = (function(dataCrossfilter) {
     }
   };
 
-  /**
-   * TODO
-   */
-  _data.getCrossfilterDimensionAndGroup = function(dimension, measures) {
-    return null;
+  _data.getCrossfilterDimension = function(dimension) {
+
+    if (dimension._crossfilterDimension === null) {
+      dimension._crossfilterDimension = _dataCrossfilter.dimension(function(d) { return d[dimension.id()]; });
+    }
+
+    return dimension._crossfilterDimension;
+  };
+
+  _data.getCrossfilterGroup = function(dimension, measures) {
+
+    // simple grouping
+    if (measures === null) {
+      if (dimension._crossfilterGroups.default === undefined) {
+        dimension._crossfilterGroups.default = dimension
+          .crossfilterDimension()
+          .group()
+          .reduceSum(function(d) { return d[that.measure]; });
+      }
+      return dimension._crossfilterGroups.default;
+    }
+
+    // if we have a custom list of measures, we compute the group
+    else {
+      measuresToGroup = [analytics.state.measure.id()];
+      for (var i in measures)
+        if (measuresToGroup.indexOf(measures[i].id()) < 0)
+          measuresToGroup.push(measures[i].id());
+      var key = measuresToGroup.sort().join(',');
+
+      if (dimension._crossfilterGroups[key] === undefined) {
+        dimension._crossfilterGroups[key] = dimension
+          .crossfilterDimension()
+          .group()
+          .reduce(
+            function (p, v) {
+              for (var i in measuresToGroup)
+                p[measuresToGroup[i]] += v[measuresToGroup[i]];
+              return p;
+            },
+            function (p, v) {
+              for (var i in measuresToGroup)
+                p[measuresToGroup[i]] -= v[measuresToGroup[i]];
+              return p;
+            },
+            function () {
+              var p = {};
+              for (var i in measuresToGroup)
+                p[measuresToGroup[i]] = 0;
+              return p;
+            }
+          );
+      }
+      return dimension._crossfilterGroups[key];
+    }
   };
 
   // importTest "data-test-accessors.js"
