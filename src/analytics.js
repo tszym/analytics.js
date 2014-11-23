@@ -50,6 +50,9 @@ var analytics = {
         cubes    : 'Cubes available:',
         measures : 'Measures available:'
       }
+    },
+    tips : {
+      charts : {}
     }
   }
 };

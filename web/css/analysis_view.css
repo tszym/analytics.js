@@ -84,6 +84,17 @@ html, body {
 	overflow: hidden;
 }
 
+.chart .chart-title {
+	font-style: 90%;
+	font-weight: bold;
+	text-align: left;
+}
+
+.chart .chart-header {
+	padding: 5px;
+	background: #DAECF2;
+}
+
 div.dc-chart {
 	float: none;
 	/* position: relative; */
@@ -127,13 +138,6 @@ div.dc-chart {
 
 .fa-nomargin {
 	margin: 0;
-}
-
-.wordcloud-title {
-	display: block;
-	font-size: 150%;
-	margin: 15px 0 10px;
-	text-align: center;
 }
 
 #zoom {

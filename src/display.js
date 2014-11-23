@@ -120,7 +120,10 @@ analytics.display = (function() {
   };
 
   display.getTip = function (tipType, tipName) {
-    return tipType+" - "+tipName;
+    if (analytics.csts.tips[tipType] && analytics.csts.tips[tipType][tipName])
+      return analytics.csts.tips[tipType][tipName];
+    else
+      return "";
   };
 
   function getColumn(i) {
