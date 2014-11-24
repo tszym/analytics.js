@@ -159,6 +159,21 @@ analytics.data = (function(dataCrossfilter) {
     }
   };
 
+  _data.loadIfNeeded = function() {
+    var measuresLoadedIds = _measuresLoaded.map(function (m) { return m.id(); });
+    var measuresToLoad = analytics.display.getExtraMeasuresUsed();
+
+    for (var i in measuresToLoad) {
+      // if we need to reload, do it and exit
+      if (measuresLoadedIds.indexOf(measuresToLoad[i].id()) < 0) {
+        _data.load();
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   _data.getCrossfilterDimension = function(dimension, filters) {
 
     if (dimension._crossfilterDimension === null) {
