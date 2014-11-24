@@ -26,7 +26,8 @@ analytics.charts.pie = (function () {
   };
 
   pieChart.options = {
-    sort : "valueasc"
+    sort   : "valueasc",
+    labels : true,
   };
 
   return analytics.charts.chart.extend(pieChart);

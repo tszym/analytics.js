@@ -251,8 +251,8 @@ analytics.charts.chart = (function () {
       }
 
       // labels
-      if (_chart.options().labels === false || _chart.options().labels === true) {
-        _chart.renderLabel(_chart.options().labels);
+      if (_chart.options().labels !== null) {
+        _chart.element().renderLabel(_chart.options().labels);
       }
     }
 

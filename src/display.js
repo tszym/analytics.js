@@ -448,16 +448,19 @@ analytics.display = (function() {
     var sortSelect             = $('#chartparam-sort');
     var typeSelect             = $('#chartparam-type');
     var playerTimeoutSelect    = $('#chartparam-playerTimeout');
+    var labelChoiceSelect      = $('#chartparam-labelChoice');
     var dimensionsSelects      = $('.chartparam-dimension');
     var measuresSelects        = $('.chartparam-measure');
     var sortContainer          = sortSelect         .parent().parent();
     var playerTimeoutContainer = playerTimeoutSelect.parent().parent();
+    var labelChoiceContainer   = labelChoiceSelect  .parent().parent();
     var dimensionsContainers   = dimensionsSelects  .parent().parent();
     var measuresContainers     = measuresSelects    .parent().parent();
 
     // hide all
     sortContainer         .hide();
     playerTimeoutContainer.hide();
+    labelChoiceContainer  .hide();
     dimensionsContainers  .hide();
     measuresContainers    .hide();
 
@@ -487,6 +490,7 @@ analytics.display = (function() {
     typeSelect.val(chart.type());
     sortSelect.val(options.sort);
     playerTimeoutSelect.val(options.playerTimeout);
+    labelChoiceSelect.prop("checked", options.labels);
     dimensionsSelects.each(function(i, el) {
       var dimension = chart.dimensions()[i];
       if (dimension)
@@ -504,6 +508,7 @@ analytics.display = (function() {
       var nbMes             = analytics.charts[chartType].params.nbExtraMeasuresMax;
       var showSort          = analytics.charts[chartType].options.sort !== null;
       var showPlayerTimeout = analytics.charts[chartType].options.displayPlay;
+      var showLabelChoice   = analytics.charts[chartType].options.labels !== null;
 
       // show dimensions & measures
       dimensionsContainers.slice(0, nbDims).slideDown(duration);
@@ -521,6 +526,11 @@ analytics.display = (function() {
         playerTimeoutContainer.slideDown(duration);
       else
         playerTimeoutContainer.slideUp(duration);
+
+      if (showLabelChoice)
+        labelChoiceContainer.slideDown(duration);
+      else
+        labelChoiceContainer.slideUp(duration);
 
       // disable impossibles dimensions & measures
       dimensionsSelects.children('option').removeAttr('disabled');
@@ -547,6 +557,7 @@ analytics.display = (function() {
         measures      : [],
         sort          : sortSelect.val(),
         type          : typeSelect.val(),
+        labels        : labelChoiceSelect.prop("checked"),
         playerTimeout : playerTimeoutSelect.val(),
       };
       dimensionsSelects.each(function(i, el) {
@@ -624,6 +635,12 @@ analytics.display = (function() {
     if (analytics.charts[options.type].options.sort !== null && chart.options().sort != options.sort) {
       chart.setOption("sort", options.sort);
       doRedraw = true;
+    }
+
+    // show labels
+    if (analytics.charts[options.type].options.labels !== null && chart.options().labels != options.labels) {
+      chart.setOption("labels", options.labels);
+      doRender = true;
     }
 
     if (analytics.charts[options.type].options.displayPlay && chart.options().playerTimeout != options.playerTimeout) {
