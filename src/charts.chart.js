@@ -198,6 +198,14 @@ analytics.charts.chart = (function () {
       }
     }
 
+    _chart.updateColors = function () {
+      if (typeof _chart.element().colorDomain == 'function') {
+        _chart.element()
+          .colors(d3.scale.quantize().range(_dimensions[0].colors()))
+          .colorDomain(niceDomain(_dimensions[0].crossfilterGroup(_extraMeasures)), analytics.state.measure().id());
+      }
+    };
+
     function updateHeader() {
       displayCanDrillRoll();
       displayLevels();
@@ -225,12 +233,7 @@ analytics.charts.chart = (function () {
           return keyText + '\n' + valText;
         });
 
-      // color chart
-      if (typeof _chart.element().colorDomain == 'function') {
-        _chart.element()
-          .colors(d3.scale.quantize().range(dimension.colors()))
-          .colorDomain(niceDomain(dimension.crossfilterGroup(_extraMeasures)), analytics.state.measure().id());
-      }
+      _chart.updateColors();
 
       // sort
       switch(_chart.options().sort) {

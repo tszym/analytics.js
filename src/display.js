@@ -397,6 +397,16 @@ analytics.display = (function() {
     }
   };
 
+  var _frozenColorScales = false;
+
+  display.freezeColorScales = function () {
+    _frozenColorScales = true;
+  };
+
+  display.unfreezeColorScales = function () {
+    _frozenColorScales = false;
+  };
+
   display._updateFilter = function (dimension, element, addOrRemove) {
     // update dimension
     dimension.filter(element, addOrRemove);
@@ -407,6 +417,10 @@ analytics.display = (function() {
       if (charts[i].element().hasFilter(element) != addOrRemove) {
         charts[i].element().filter(element);
       }
+    }
+
+    if (!_frozenColorScales) {
+      display.charts().map(function (chart) { chart.updateColors(); });
     }
   };
 
