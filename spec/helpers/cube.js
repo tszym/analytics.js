@@ -1,4 +1,3 @@
-
 var cube = function (CubeId, Caption) {
   var _cubeId = CubeId;
   var _caption = Caption;
@@ -6,7 +5,20 @@ var cube = function (CubeId, Caption) {
   var _currentDimension;
   var _currentHierarchy;
 
-  var _dimensions = {};
+  var _dimensions = {
+    "_measures": {
+      caption: "Measures",
+      type: "Measure",
+      hierarchies: {
+        "_measures": {
+          caption: "Measures",
+          levels: [
+            {id: "M1", caption: "Measures", members: {}}
+          ]
+        }
+      }
+    }
+  };
 
   var _cube = {};
 
@@ -76,7 +88,7 @@ var cube = function (CubeId, Caption) {
       });
     }
     properties = properties || false;
-    return _dimensions[dim].hierarchies[hie].levels[lev].members;
+    return copyObject(_dimensions[dim].hierarchies[hie].levels[lev].members);
   };
 
   _cube.childs = function (dim, hie, lev, member) {
@@ -97,7 +109,32 @@ var cube = function (CubeId, Caption) {
     return _dimensions[dim].hierarchies[hie].levels.map(function (l) { return except(l, ["members"]); });
   };
 
+  _cube.measures = function () {
+    return _dimensions._measures.hierarchies._measures.levels[0].members;
+  };
+
   // Cube building functions
+
+  /**
+   *
+   * Adds a measure to the cube
+   *
+   * @param {String} id
+   *  The id of the measure
+   * @param {String} caption
+   *  A caption describing the measure
+   * @param {Function} fun
+   *  A function to generate the data for the measure, this function should take a number
+   *  (integer) and return a number.
+   */
+  _cube.measure = function (id, caption, description, fun) {
+    _dimensions._measures.hierarchies._measures.levels[0].members[id] = {
+      caption: caption,
+      description: description,
+      fun: fun
+    };
+    return _cube;
+  };
 
   /**
    *
@@ -110,9 +147,14 @@ var cube = function (CubeId, Caption) {
    * @param {String} type
    *  The type of the dimension (Geometry, Time, Standard)
    */
-  _cube.dimension = function (dimId, caption, type) {
+  _cube.dimension = function (dimId, caption, description, type) {
     _currentDimension = dimId;
-    _dimensions[dimId] = {caption: caption, type: type, hierarchies: {}};
+    _dimensions[dimId] = {
+      caption: caption,
+      description: description,
+      type: type,
+      hierarchies: {}
+    };
     return _cube;
   };
 
@@ -125,9 +167,13 @@ var cube = function (CubeId, Caption) {
    * @param {String} caption
    *  A caption describing the hierarchy
    */
-  _cube.hierarchy = function (hierarchyId, caption) {
+  _cube.hierarchy = function (hierarchyId, caption, description) {
     _currentHierarchy = hierarchyId;
-    _dimensions[_currentDimension].hierarchies[hierarchyId] = {caption: caption, levels: []};
+    _dimensions[_currentDimension].hierarchies[hierarchyId] = {
+      caption: caption,
+      description: description,
+      levels: []
+    };
     return _cube;
   };
 
@@ -140,9 +186,15 @@ var cube = function (CubeId, Caption) {
    * @param {String} caption
    *  A caption describing the level
    */
-  _cube.level = function (levelId, caption) {
+  _cube.level = function (levelId, caption, description) {
     _dimensions[_currentDimension].hierarchies[_currentHierarchy]
-      .levels.push({id: levelId, caption: caption, "list-properties" : {}, members: {}});
+      .levels.push({
+        id: levelId,
+        caption: caption,
+        description: description,
+        "list-properties" : {},
+        members: {}
+      });
     return _cube;
   };
 
@@ -156,9 +208,13 @@ var cube = function (CubeId, Caption) {
    * @param {string} type
    *  the type of the property (geometry, standard)
    */
-  _cube.property = function (propertyId, caption, type) {
+  _cube.property = function (propertyId, caption, description, type) {
     var hie = _dimensions[_currentDimension].hierarchies[_currentHierarchy];
-    hie.levels[hie.levels.length - 1]["list-properties"][propertyId] = {caption: caption, type: type};
+    hie.levels[hie.levels.length - 1]["list-properties"][propertyId] = {
+      caption: caption,
+      description: description,
+      type: type
+    };
     return _cube;
   };
 
@@ -175,10 +231,14 @@ var cube = function (CubeId, Caption) {
    * @param {Array} children
    *  The list of the members id of the children members of this member
    */
-  _cube.member = function (memberId, caption, properties, children) {
+  _cube.member = function (memberId, caption, description, properties, children) {
     var hie = _dimensions[_currentDimension].hierarchies[_currentHierarchy];
     var lev = hie.levels[hie.levels.length - 1];
-    lev.members[memberId] = {"caption": caption, "children": children};
+    lev.members[memberId] = {
+      "caption": caption,
+      "description": description,
+      "children": children
+    };
     for (var property in properties) {
       lev.members[memberId][property] = properties[property];
     }
@@ -202,62 +262,32 @@ function fileContent (filepath) {
 }
 
 function getData(cube, measures, hierarchies) {
-  var out = [{}];
-  // initialize the output to a list of measures with values (case with no dice)
-  measures.forEach(function(d) {
-    out[0][d] = cube.size();
-    // [{measureId: CubeSize, ...}]
+  crossmembers = [{}];
+  Object.keys(hierarchies).forEach(function (hierarchy) {
+    var dimension = cube.dimensionFromHierarchy(hierarchy);
+    crossmembers = cross(crossmembers, hierarchies[hierarchy].members, dimension);
   });
 
-  var nbValues = 1;
-
-  // for each hierarchy
-  Object.keys(hierarchies).forEach(function (hier) {
-    var dimension = cube.dimensionFromHierarchy(hier);
-
-    var members = cube.members(dimension, hier, cube.levels(dimension, hier).length - 1);
-    var membersId = Object.keys(members);
-    var n = Object.keys(members).length; // number of members in the given hierarchy
-
-    // if we dice, split the value of the measures for each member
-    if (hierarchies[hier].dice) {
-      // Build the array containing cross-members values
-      out = out.map(function(d) {
-        // for each measure already in out
-        var tmp = copyArray(hierarchies[hier].members).map(function(member, index) {
-          di = copyObject(d);
-          // for each member we want
-          measures.forEach(function(mes) {
-            di[mes] = di[mes] + index/n*10000;
-            // update the measure
-          });
-          // add the member to the measure entry
-          di[dimension] = member; // getHierarchyDimension(hier) = dimension name
-          // di = {measureId: CubeSize/n, dimensionId: member}
-          return di; // Replace the element of tmp (the member) by the measure entry
-        });
-        // tmp = [{measureId: CubeSize/n, dimensionId: membmer}, ...]
-        return tmp; // Replace the element of out by the array of new measure entries
-      });
-
-      // flatten out
-      out = [].concat.apply([], out);
-    }
-    // if we don't dice, just remove the values of members not in the filter
-    else {
-      var nFiltered = hierarchies[hier].members.length;
-
-      out = out.map(function(d) {
-        d = copyObject(d);
-        measures.forEach(function(mes) {
-          d[mes] = (membersId.indexOf(member)+1)/n;
-        });
-        return d;
-      });
-    }
+  var cubeSize = cube.size();
+  measures.forEach(function (measure, index) {
+    crossmembers.forEach(function (crossmember, indexcm) {
+      crossmember[measure] = cube.measures()[measure].fun(indexcm);
+    });
   });
 
-  return out;
+  return crossmembers;
+}
+
+function cross(objects, newMembers, dimension) {
+  var result = [];
+  newMembers.forEach(function (newMember) {
+    objects.forEach(function (object) {
+      var obj = copyObject(object);
+      obj[dimension] = newMember;
+      result.push(obj);
+    });
+  });
+  return result;
 }
 
 function copyArray(arr) {
@@ -357,88 +387,3 @@ function generateAPI(cubes) {
     },
   };
 }
-
-var baseUrl = "/static/analytics/js/helpers/";
-
-var c = cube("C", "Le cube")
-  .dimension("Measures", "Measures", "Measure")
-    .hierarchy("M1", "Measure")
-      .level("m", "measure")
-        .member("E", "Export", {}, [])
-        .member("I", "Import", {}, [])
-  .dimension("[Zone]", "Zone", "Geometry")
-    .hierarchy("Z1", "Nuts")
-      .level("nuts0", "Nuts0")
-        .property("Geom", "La Geometrie", "Geometry")
-        .member("BE", "Belgium", {"Geom": fileContent(baseUrl+"geoData/BE")}, ["BE1","BE2","BE3"])
-        .member("DE", "Germany", {"Geom": fileContent(baseUrl+"geoData/DE")}, ["DE7","DEC","DE9","DEB","DE3","DEG","DEF","DE8","DE4","DEA","DEE","DE1","DE2","DE6","DE5","DED"])
-        .member("NL", "Netherlands", {"Geom": fileContent(baseUrl+"geoData/NL")}, ["NL4","NL3","NL1","NL2"])
-        .member("LU", "Luxembourg", {"Geom": fileContent(baseUrl+"geoData/LU")}, ["LU0"])
-        .member("UK", "United Kingdom", {"Geom": fileContent(baseUrl+"geoData/UK")}, ["UKI","UKC","UKM","UKG","UKD","UKF","UKH","UKL","UKN","UKJ","UKK","UKE"])
-      .level("nuts1", "Nuts1")
-        .property("Geom", "La Geometrie", "Geometry")
-        .member("BE3", "RÉGION WALLONNE", {"Geom": fileContent(baseUrl+"geoData/BE3")}, [])
-        .member("BE2", "VLAAMS GEWEST", {"Geom": fileContent(baseUrl+"geoData/BE2")}, [])
-        .member("BE1", "RÉGION DE BRUXELLES-CAPITALE / BRUSSELS HOOFDSTEDELIJK GEWEST", {"Geom": fileContent(baseUrl+"geoData/BE1")}, [])
-        .member("DE7", "HESSEN", {"Geom": fileContent(baseUrl+"geoData/DE7")}, [])
-        .member("DEC", "SAARLAND", {"Geom": fileContent(baseUrl+"geoData/DEC")}, [])
-        .member("DE9", "NIEDERSACHSEN", {"Geom": fileContent(baseUrl+"geoData/DE9")}, [])
-        .member("DEB", "RHEINLAND-PFALZ", {"Geom": fileContent(baseUrl+"geoData/DEB")}, [])
-        .member("DE3", "BERLIN", {"Geom": fileContent(baseUrl+"geoData/DE3")}, [])
-        .member("DEG", "THÜRINGEN", {"Geom": fileContent(baseUrl+"geoData/DEG")}, [])
-        .member("DEF", "SCHLESWIG-HOLSTEIN", {"Geom": fileContent(baseUrl+"geoData/DEF")}, [])
-        .member("DE8", "MECKLENBURG-VORPOMMERN", {"Geom": fileContent(baseUrl+"geoData/DE8")}, [])
-        .member("DE4", "BRANDENBURG", {"Geom": fileContent(baseUrl+"geoData/DE4")}, [])
-        .member("DEA", "NORDRHEIN-WESTFALEN", {"Geom": fileContent(baseUrl+"geoData/DEA")}, [])
-        .member("DEE", "SACHSEN-ANHALT", {"Geom": fileContent(baseUrl+"geoData/DEE")}, [])
-        .member("DE1", "BADEN-WÜRTTEMBERG", {"Geom": fileContent(baseUrl+"geoData/DE1")}, [])
-        .member("DE2", "BAYERN", {"Geom": fileContent(baseUrl+"geoData/DE2")}, [])
-        .member("DE6", "HAMBURG", {"Geom": fileContent(baseUrl+"geoData/DE6")}, [])
-        .member("DE5", "BREMEN", {"Geom": fileContent(baseUrl+"geoData/DE5")}, [])
-        .member("DED", "SACHSEN", {"Geom": fileContent(baseUrl+"geoData/DED")}, [])
-        .member("LU0", "LUXEMBOURG", {"Geom": fileContent(baseUrl+"geoData/LU0")}, [])
-        .member("NL4", "ZUID-NEDERLAND", {"Geom": fileContent(baseUrl+"geoData/NL4")}, [])
-        .member("NL3", "WEST-NEDERLAND", {"Geom": fileContent(baseUrl+"geoData/NL3")}, [])
-        .member("NL1", "NOORD-NEDERLAND", {"Geom": fileContent(baseUrl+"geoData/NL1")}, [])
-        .member("NL2", "OOST-NEDERLAND", {"Geom": fileContent(baseUrl+"geoData/NL2")}, [])
-        .member("UKI", "LONDON", {"Geom": fileContent(baseUrl+"geoData/UKI")}, [])
-        .member("UKC", "NORTH EAST (ENGLAND)", {"Geom": fileContent(baseUrl+"geoData/UKC")}, [])
-        .member("UKM", "SCOTLAND", {"Geom": fileContent(baseUrl+"geoData/UKM")}, [])
-        .member("UKG", "WEST MIDLANDS (ENGLAND)", {"Geom": fileContent(baseUrl+"geoData/UKG")}, [])
-        .member("UKD", "NORTH WEST (ENGLAND)", {"Geom": fileContent(baseUrl+"geoData/UKD")}, [])
-        .member("UKF", "EAST MIDLANDS (ENGLAND)", {"Geom": fileContent(baseUrl+"geoData/UKF")}, [])
-        .member("UKH", "EAST OF ENGLAND", {"Geom": fileContent(baseUrl+"geoData/UKH")}, [])
-        .member("UKL", "WALES", {"Geom": fileContent(baseUrl+"geoData/UKL")}, [])
-        .member("UKN", "NORTHERN IRELAND", {"Geom": fileContent(baseUrl+"geoData/UKN")}, [])
-        .member("UKJ", "SOUTH EAST (ENGLAND)", {"Geom": fileContent(baseUrl+"geoData/UKJ")}, [])
-        .member("UKK", "SOUTH WEST (ENGLAND)", {"Geom": fileContent(baseUrl+"geoData/UKK")}, [])
-        .member("UKE", "YORKSHIRE AND THE HUMBER", {"Geom": fileContent(baseUrl+"geoData/UKE")}, [])
-  .dimension("[Time]", "Temps", "Time")
-    .hierarchy("T1", "Years-Semesters")
-      .level("Level0", "Years")
-        .member("2010", "2010", {}, ["2010-S1", "2010-S2"])
-        .member("2011", "2011", {}, ["2011-S1", "2011-S2"])
-        .member("2012", "2012", {}, ["2012-S1", "2012-S2"])
-        .member("2013", "2013", {}, ["2013-S1", "2013-S2"])
-      .level("Level1", "Semester")
-        .member("2010-S1", "2010-S1")
-        .member("2010-S2", "2010-S2")
-        .member("2011-S1", "2011-S1")
-        .member("2011-S2", "2011-S2")
-        .member("2012-S1", "2012-S1")
-        .member("2012-S2", "2012-S2")
-        .member("2013-S1", "2013-S1")
-        .member("2013-S2", "2013-S2")
-        .member("2014-S1", "2014-S1")
-        .member("2014-S2", "2014-S2")
-  .dimension("[Product]", "Product", "Standard")
-    .hierarchy("P1", "Custom type")
-      .level("Level0", "type")
-        .member("F", "Food", {}, ["BG","P","S"])
-        .member("NC", "Non-consumable", {}, ["H","F"])
-      .level("Level1", "Semester")
-        .member("BG", "Backing Goods")
-        .member("P", "Produce")
-        .member("S", "Snack Goods")
-        .member("H", "Hammer")
-        .member("F", "Fork");
