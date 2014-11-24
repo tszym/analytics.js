@@ -261,7 +261,7 @@ analytics.display = (function() {
 
     for (var i in dimensions) {
       var dimension = dimensions[i];
-      insertChart(analytics.charts.wordcloud("#chart-" + _nextChartId++, [dimension]), 0, Infinity);
+      insertChart(analytics.charts.wordcloudWithLegend("#chart-" + _nextChartId++, [dimension]), 0, Infinity);
     }
   };
 
@@ -305,6 +305,7 @@ analytics.display = (function() {
    * @param {string} dimension
    */
   display.filterAllChartsUsingDimension = function (dimension) {
+    dimension.filters([]);
     var charts = display.getChartsUsingDimension(dimension);
     for (var i in charts) {
       charts[i].element().filterAll();
@@ -467,7 +468,7 @@ analytics.display = (function() {
     // add chart types once
     if (!typeSelect.children('option').length) {
       for (var chartType in analytics.charts) {
-        if (typeof analytics.charts[chartType].arePossibleDimensions == 'function' && chartType != 'chart') {
+        if (chartType != 'chart' && typeof analytics.charts[chartType].params != 'undefined' && analytics.charts[chartType].params.displayParams === true) {
           var caption = analytics.csts.txts.charts[chartType] ? analytics.csts.txts.charts[chartType] : chartType;
           typeSelect.append('<option value="'+chartType+'">'+caption+'</option>');
         }
@@ -598,7 +599,7 @@ analytics.display = (function() {
 
     var doRender = false;
     var doRedraw = false;
-    var updateData = false;
+    var loadData = false;
 
     // create dims & measures
     var nbDims = analytics.charts[options.type].params.nbDimensionsMax;
@@ -628,7 +629,7 @@ analytics.display = (function() {
     if (!arraysEquals(options.measures, chart.extraMeasures())) {
       chart.extraMeasures(options.measures);
       doRedraw = true;
-      // TODO updateData ?
+      loadData = true;
     }
 
     // sort order allowed & changed
@@ -652,15 +653,14 @@ analytics.display = (function() {
       }
     }
 
-    // Update data
-    /*
-    if (updateData) {
-      analytics.data.get();
-      chart.render();
-      analytics.display.redraw();
-    }*/
     // Update display
-    if (doRender)
+    if (loadData) {
+      var isLoaded = analytics.data.loadIfNeeded();
+      chart.render();
+      if (isLoaded)
+        analytics.display.redraw();
+    }
+    else if (doRender)
       chart.render();
     else if (doRedraw)
       chart.redraw();
