@@ -66,7 +66,7 @@ module.exports = function (grunt) {
         src: ['src/**/*.js','spec/**/*.js','Gruntfile.js'],
         options: {
           indent: 2,
-          ignores: ['**/*.min.js'],
+          ignores: ['**/*.min.js', 'spec/dependancies/*'],
           loopfunc: true
         }
       }
@@ -105,7 +105,7 @@ module.exports = function (grunt) {
           display: "short",
           summary: true,
           specs:  "spec/*-spec.js",
-          helpers: "spec/helpers/*.js",
+          helpers: ["spec/dependancies/*.js", "spec/helpers/*.js"],
           version: "2.0.0",
           outfile: "spec/unit.html",
           keepRunner: true
