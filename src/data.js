@@ -1,9 +1,9 @@
-analytics.data = (function(dataCrossfilter) {
+analytics.data = (function() {
 
   var _data = {};
 
   var _measuresLoaded = [];
-  var _dataCrossfilter = dataCrossfilter;
+  var _dataCrossfilter;
 
 
   /**
