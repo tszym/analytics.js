@@ -508,7 +508,7 @@ analytics.display = (function() {
       var nbDims            = analytics.charts[chartType].params.nbDimensionsMax;
       var nbMes             = analytics.charts[chartType].params.nbExtraMeasuresMax;
       var showSort          = analytics.charts[chartType].options.sort !== null;
-      var showPlayerTimeout = analytics.charts[chartType].options.displayPlay;
+      var showPlayerTimeout = analytics.charts[chartType].params.displayPlay;
       var showLabelChoice   = analytics.charts[chartType].options.labels !== null;
 
       // show dimensions & measures
@@ -644,7 +644,7 @@ analytics.display = (function() {
       doRender = true;
     }
 
-    if (analytics.charts[options.type].options.displayPlay && chart.options().playerTimeout != options.playerTimeout) {
+    if (analytics.charts[options.type].params.displayPlay && chart.options().playerTimeout != options.playerTimeout) {
       if (options.playerTimeout < 50)
         options.playerTimeout = 50;
       chart.setOption("playerTimeout", options.playerTimeout);
