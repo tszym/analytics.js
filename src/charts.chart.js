@@ -202,7 +202,7 @@ analytics.charts.chart = (function () {
       if (typeof _chart.element().colorDomain == 'function') {
         _chart.element()
           .colors(d3.scale.quantize().range(_dimensions[0].colors()))
-          .colorDomain(niceDomain(_dimensions[0].crossfilterGroup(_extraMeasures)), analytics.state.measure().id());
+          .colorDomain(_chart._niceDomain(_dimensions[0].crossfilterGroup(_extraMeasures), analytics.state.measure().id()));
       }
     };
 
@@ -237,16 +237,16 @@ analytics.charts.chart = (function () {
 
       // sort
       switch(_chart.options().sort) {
-        case 'key':
-        _chart.element().ordering(function (d) { return  d.key;   });
-        break;
-
         case 'valueasc':
-        _chart.element().ordering(function (d) { return  d.value; });
+        _chart.element().ordering(function (d) { return  d.value !== undefined ? d.value : d.data.value; });
         break;
 
         case 'valuedesc':
-        _chart.element().ordering(function (d) { return -d.value; });
+        _chart.element().ordering(function (d) { return d.value !== undefined ? -d.value : -d.data.value; });
+        break;
+
+        default: // key
+        _chart.element().ordering(function (d) { return  d.key !== undefined ? d.key : d.data.key;   });
         break;
       }
 
@@ -372,9 +372,9 @@ analytics.charts.chart = (function () {
      * @param {String} [measure] - name of the nested value accessor in `d.value`. Needed for group with more than 1 aggregated measure.
      * @return {Array} [min, max] rounded
      */
-    function niceDomain (crossfilterGroup, measure) {
+    _chart._niceDomain = function (crossfilterGroup, measure) {
       function getVal(d) {
-        if (typeof measure == 'undefined')
+        if (typeof measure == 'undefined' || typeof d[measure] == 'undefined')
           return d;
         else
           return d[measure];
@@ -393,7 +393,7 @@ analytics.charts.chart = (function () {
       }
 
       return [0, 0];
-    }
+    };
 
     return _chart;
   }
