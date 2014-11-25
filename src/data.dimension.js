@@ -57,7 +57,7 @@ analytics.data.dimension = function (id, caption, type, hierarchy, levels, prope
     return _levels.length - 1;
   };
 
-  _dimension.getGeoProperty = function (argument) {
+  _dimension.getGeoProperty = function () {
     return analytics.query.getGeoProperty(analytics.state.schema(), analytics.state.cube().id(), _dimension.id(), _dimension.hierarchy());
   };
 

@@ -40,8 +40,8 @@ analytics.state = (function() {
    * Callback function to call when changing the cube and measure to display
    *
    * @private
-   * @param {string} cube
-   * @param {string} measure
+   * @param {analytics.data.cube} cube
+   * @param {analytics.data.measure} measure
    */
   function setCubeAndMeasureCallback(cube, measure) {
 
@@ -150,9 +150,8 @@ analytics.state = (function() {
    * Will update the charts consequently.
    *
    * @private
-   * @param {analytics.dimension} dimension id of the dimension on which we want to drill down
-   * @param {string} member id of the member on which we want to drill down
-   * @param {string} dcChartID id of the dc chart on which the evenement was called
+   * @param {analytics.data.dimension} dimension on which we want to drill down
+   * @param {string} member on which we want to drill down
    */
   state.drillDown = function (dimension, member) {
 
@@ -168,7 +167,7 @@ analytics.state = (function() {
    * Will update the charts consequently.
    *
    * @private
-   * @param {string} dimension id of the dimension on which we want to roll up
+   * @param {analytics.data.dimension} dimension on which we want to roll up
    * @param {integer} [nbLevels=1] number of levels to roll up
    */
   state.rollUp = function (dimension, nbLevels) {
