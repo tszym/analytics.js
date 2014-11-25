@@ -341,7 +341,7 @@ analytics.display = (function() {
    * @param {string} member id of the member on which we want to drill down
    * @param {string} dcChartID id of the dc chart on which the evenement was called
    */
-  display.drillDown = function (dimension, member, dcChartID) {
+  display.drillDown = function (dimension, member, dcChartID, keys) {
 
     if (dimension.isDrillPossible()) {
 
@@ -352,11 +352,14 @@ analytics.display = (function() {
         }
       });
 
+      // update state
+      if (keys.ctrl)
+        analytics.state.drillDown(dimension, member, 'selected');
+      else
+        analytics.state.drillDown(dimension, member, 'simple');
+
       // reset filter on charts using this dimension
       display.filterAllChartsUsingDimension(dimension);
-
-      // update state
-      analytics.state.drillDown(dimension, member);
 
       // update interface
       display.render();

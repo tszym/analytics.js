@@ -187,7 +187,7 @@ analytics.charts.chart = (function () {
       // zoom callback
       if (typeof _chart.element().callbackZoomIn == 'function') {
         _chart.element()
-          .callbackZoomIn(function (el, dcChartID) { analytics.display.drillDown(_chart.dimensions()[0], el, dcChartID); })
+          .callbackZoomIn(function (el, dcChartID, keys) { analytics.display.drillDown(_chart.dimensions()[0], el, dcChartID, keys); })
           .callbackZoomOut(function (dcChartID) { analytics.display.rollUp(_chart.dimensions()[0], dcChartID); });
       }
 

@@ -152,11 +152,29 @@ analytics.state = (function() {
    * @private
    * @param {analytics.data.dimension} dimension on which we want to drill down
    * @param {string} member on which we want to drill down
+   * @param {string} [type] type of the drill down ("simple", "selected", "partial")
    */
-  state.drillDown = function (dimension, member) {
+  state.drillDown = function (dimension, member, type) {
 
     if (dimension.isDrillPossible()) {
-      var newMembers = analytics.query.getMembers(_schema, _cube, dimension.id(), dimension.hierarchy(), dimension.currentLevel(), dimension.properties().length > 0, member);
+      var newMembers;
+
+      switch (type) {
+        case 'selected':
+        var toDrill = dimension.filters().length ? dimension.filters() : dimension.getLastSlice();
+        newMembers = {};
+        toDrill.forEach(function (member) {
+          var newMembersTemp = analytics.query.getMembers(_schema, _cube, dimension.id(), dimension.hierarchy(), dimension.currentLevel(), dimension.properties().length > 0, member);
+          for (var newMember in newMembersTemp)
+            newMembers[newMember] = newMembersTemp[newMember];
+        });
+        break;
+
+        default:
+        newMembers = analytics.query.getMembers(_schema, _cube, dimension.id(), dimension.hierarchy(), dimension.currentLevel(), dimension.properties().length > 0, member);
+        break;
+      }
+
       dimension.addSlice(newMembers);
       analytics.data.load();
     }
@@ -278,7 +296,7 @@ analytics.state = (function() {
       });
     }
   }
-  
+
   return state;
 
 })();

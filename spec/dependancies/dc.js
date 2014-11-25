@@ -3292,7 +3292,10 @@ dc.stackMixin = function (_chart) {
     };
 
     function flattenStack() {
-        return _chart.data().reduce(function (all, layer) {
+        var groups = _chart.data();
+        groups[0].values = _chart._computeOrderedGroups(groups[0].values);
+
+        return groups.reduce(function (all, layer) {
             return all.concat(layer.values);
         }, []);
     }
@@ -3782,10 +3785,16 @@ dc.wheelMixin = function(_chart) {
         if (zoomOut === undefined)
             zoomOut = true;
 
-        // on zoomIn
+        d3.event.preventDefault();
+
+        var keys = {
+            ctrl  : d3.event.ctrlKey,
+            alt   : d3.event.altKey,
+            shift : d3.event.shiftKey
+        }
         if (!disabledActions.mousewheel && zoomIn && (d3.event.deltaY < 0 || d3.event.wheelDeltaY > 0) && _chart._callbackZoomIn !== undefined) {
             delayAction('mousewheel', 1500);
-            _chart._zoomIn(d);
+            _chart._zoomIn(d, keys);
         }
 
         // on zoomIn-out
@@ -3799,9 +3808,9 @@ dc.wheelMixin = function(_chart) {
         return false;
     };
 
-    _chart._zoomIn = function (d) {
-        _chart._onZoomIn(d);
-        _chart.callbackZoomIn()(_chart.keyAccessor()(d), _chart.chartID());
+    _chart._zoomIn = function (d, keys) {
+        _chart._onZoomIn(d, keys);
+        _chart.callbackZoomIn()(_chart.keyAccessor()(d), _chart.chartID(), keys);
     };
 
     _chart._zoomOut = function (d) {
@@ -4328,9 +4337,15 @@ dc.pieChart = function (parent, chartGroup) {
     }
 
     // Redefinition of zoomIn function, from dc.wheelMixin()
-    _chart._zoomIn = function (d) {
-      _chart._onZoomIn(d);
-      _chart.callbackZoomIn()(d.data.key, _chart.chartID());
+    _chart._zoomIn = function (d, keys) {
+        var elements = [];
+        if(keys.ctrl){
+            elements = _chart.filters();
+        } else {
+            elements.push(d.data.key);
+        }
+      _chart._onZoomIn(elements);
+      _chart.callbackZoomIn()(d.data.key, _chart.chartID(), keys);
     };
 
     return _chart.anchor(parent, chartGroup);
@@ -4658,9 +4673,15 @@ dc.barChart = function (parent, chartGroup) {
         _chart.onMouseWheel(d, true, true);
     }
 
-    _chart._zoomIn = function (d) {
-      _chart._onZoomIn(d);
-      _chart.callbackZoomIn()(d.x);
+    _chart._zoomIn = function (d, keys) {
+      var elements = [];
+      if(keys.ctrl){
+          elements = _chart.filters();
+      } else {
+          elements.push(d.x);
+      }
+      _chart._onZoomIn(elements);
+      _chart.callbackZoomIn()(d.x, _chart.chartID(), keys);
     };
 
     return _chart.anchor(parent, chartGroup);
@@ -5339,7 +5360,7 @@ dc.dataTable = function (parent, chartGroup) {
 
     function nestEntries() {
         var entries = _chart.dimension().top(_size);
-
+        
         return d3.nest()
             .key(_chart.group())
             .sortKeys(_order)
@@ -5537,9 +5558,15 @@ dc.dataTable = function (parent, chartGroup) {
     };
 
   // Redefinition of zoomIn function, from dc.wheelMixin()
-    _chart._zoomIn = function (d) {
-      _chart._onZoomIn(d);
-      _chart.callbackZoomIn()(d.key, _chart.chartID());
+    _chart._zoomIn = function (d, keys) {
+        var elements = [];
+        if(keys.ctrl){
+            elements = _chart.filters();
+        } else {
+            elements.push(d.key);
+        }
+      _chart._onZoomIn(elements);
+      _chart.callbackZoomIn()(d.key, _chart.chartID(), keys);
     };
 
     return _chart.anchor(parent, chartGroup);
@@ -5899,9 +5926,15 @@ dc.bubbleChart = function (parent, chartGroup) {
     };
 
     // Redefinition of zoomIn function, from dc.wheelMixin()
-    _chart._zoomIn = function (d) {
-        _chart._onZoomIn(d);
-        _chart.callbackZoomIn()(d.key, _chart.chartID());
+    _chart._zoomIn = function (d, keys) {
+        var elements = [];
+        if(keys.ctrl){
+            elements = _chart.filters();
+        } else {
+            elements.push(d.key);
+        }
+        _chart._onZoomIn(elements);
+        _chart.callbackZoomIn()(d.key, _chart.chartID(), keys);
     };
 
     return _chart.anchor(parent, chartGroup);
@@ -6562,6 +6595,24 @@ dc.geoChoroplethChart = function (parent, chartGroup) {
 
     var _nbZoomLevels = 0;
 
+    //Drag the map.
+    var m0,o0,m1,o1,scale;
+    var drag = d3.behavior.drag()
+         .on("dragstart",function(){
+            m0 = [d3.event.sourceEvent.pageX,d3.event.sourceEvent.pageY];
+            o0 = [-parseFloat(parseTransform(_chart.layers().attr("transform")).translate[0]),-parseFloat(parseTransform(_chart.layers().attr("transform")).translate[1])];
+            scale = [parseFloat(parseTransform(_chart.layers().attr("transform")).scale[0]),parseFloat(parseTransform(_chart.layers().attr("transform")).scale[1])];
+         })
+          .on("drag",function(){
+              if(m0){
+                  m1 = [d3.event.sourceEvent.pageX,d3.event.sourceEvent.pageY];
+                  o1 = [-(o0[0]+m0[0]-m1[0]),-(o0[1]+m0[1]-m1[1])];
+                  parseTransform(_chart.layers().attr("transform")).translate[0] = o1[0];
+                  parseTransform(_chart.layers().attr("transform")).translate[1] = o1[1];
+               }
+            setTransform(scale,[o1[0],o1[1]],0);
+            });
+
     _chart.layers = function() {
         return _chart.svg().select("g.layers");
     };
@@ -6572,8 +6623,8 @@ dc.geoChoroplethChart = function (parent, chartGroup) {
             .on('mousewheel', function (d) { _chart.onMouseWheel(d, false, true); })
             .on("DOMMouseScroll", function (d) { _chart.onMouseWheel(d, false, true); }) // older versions of Firefox
             .on("wheel", function (d) { _chart.onMouseWheel(d, false, true); }) // newer versions of Firefox
-            .call(d3.behavior.drag().on("drag", panMap))
-          .append("g").attr("class", "layers");
+            .call(drag)
+            .append("g").attr("class", "layers");
 
         for (var layerIndex = 0; layerIndex < _geoJsons.length; ++layerIndex) {
             var regions = _chart.layers().append("g")
@@ -6685,7 +6736,7 @@ dc.geoChoroplethChart = function (parent, chartGroup) {
                     return _chart.onClick(d, layerIndex);
                 } else {
                     _chart._zoomOut(Math.max(0, _geoJsons.length - 1 - layerIndex));
-                    _chart._zoomIn(d);
+                    _chart._zoomIn(d, {});
                 }
             })
         if (layerIndex == _geoJsons.length - 1 && layerIndex < _nbZoomLevels) {
@@ -6865,9 +6916,15 @@ dc.geoChoroplethChart = function (parent, chartGroup) {
         _chart.addTranslate([d3.event.dx, d3.event.dy], 0);
     }
 
-    _chart._zoomIn = function (d) {
-        _chart._onZoomIn(d.id);
-        _chart.callbackZoomIn()(d.id);
+    _chart._zoomIn = function (d, keys) {
+        var elements = [];
+        if(keys.ctrl){
+            elements = _chart.filters();
+        } else {
+            elements.push(d.id);
+        }
+        _chart._onZoomIn(elements);
+        _chart.callbackZoomIn()(d.id, _chart.chartID(), keys);
     };
 
     _chart._zoomOut = function (nbLevels) {
@@ -6876,24 +6933,30 @@ dc.geoChoroplethChart = function (parent, chartGroup) {
     };
 
     /*
-     * Function called when drilling down on d : focus on d and call drill down of Display
+     * Function called when drilling down on d or on all selected members : focus on d and call drill down of Display
      */
-    _chart._onZoomIn = function (d) {
+    _chart._onZoomIn = function (elements) {
+        var geom = [];
         var layerData = this.geoJsons()[this.geoJsons().length - 1].data
         for (var i in layerData) {
-            if (layerData[i].id === d) {
-                var geom = layerData[i];
-                break;
+            for(var j in elements){
+                if (layerData[i].id === elements[j]) {
+                    geom.push(layerData[i]);
+                }
             }
         }
-        _chart._adaptTo(geom, 750);
+        _chart._adaptTo({"type": "GeometryCollection", "geometries": geom}, 750);
     };
 
     /*
      * Called when rolling up from the current level
      */
     _chart._onZoomOut = function () {
-        _chart._adaptTo({ "type": "GeometryCollection", "geometries": geoJson(Math.max(0, _geoJsons.length - 2)).data}, 700);
+        _chart._adaptTo({
+          "type": "GeometryCollection",
+          "geometries": geoJson(Math.max(0, _geoJsons.length - 2)).data
+          }, 700
+        );
     };
 
 
@@ -7050,9 +7113,9 @@ dc.wordCloudChart = function (parent, chartGroup) {
         min = _chart.group().order(function(d) { return -d; }).top(1)[0].value;
         max = _chart.group().orderNatural()                   .top(1)[0].value;
 
-        _chart.selectAll("div").remove();
+        _chart.selectAll("div .dc-word").remove();
         _chart.root()
-            .selectAll("div")
+            .selectAll("div .dc-word")
             .data(_chart.data())
             .enter()
             .append('div')
