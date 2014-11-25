@@ -223,7 +223,7 @@ analytics.query = (function() {
         this.checkAPIResponse(replyDimensions);
 
         for (var key in replyDimensions.data) {
-          this.cacheDimension(idSchema, idCube, key, replyDimensions.data[key].type, replyDimensions.data[key].caption);
+          this.cacheDimension(idSchema, idCube, key, replyDimensions.data[key].type, replyDimensions.data[key].caption, replyDimensions.data[key].description);
         }
 
         dimensions = replyDimensions.data;
@@ -431,12 +431,12 @@ analytics.query = (function() {
 
         var out = [];
         for (var index=0; index < reply.data.length; index++) {
-          this.cacheLevel(idSchema, idCube, idDimension, idHierarchy, reply.data[index].id, reply.data[index].caption);
+          this.cacheLevel(idSchema, idCube, idDimension, idHierarchy, reply.data[index].id, reply.data[index].caption, reply.data[index].description);
           out.push(reply.data[index].caption);
 
           // Cache properties into the current level
           for(var key in reply.data[index]["list-properties"]) {
-            this.cacheProperty(idSchema, idCube, idDimension, idHierarchy, index, key, reply.data[index]["list-properties"][key].caption, reply.data[index]["list-properties"][key].type);
+            this.cacheProperty(idSchema, idCube, idDimension, idHierarchy, index, key, reply.data[index]["list-properties"][key].caption, reply.data[index]["list-properties"][key].description, reply.data[index]["list-properties"][key].type);
           }
         }
 
@@ -835,12 +835,12 @@ analytics.query = (function() {
      *
      * @throws {Query.SchemaNotInDatabaseError} The given schema doesn't exists
      */
-    cacheCube : function(idSchema, idCube, caption) {
+    cacheCube : function(idSchema, idCube, caption, description) {
       if (!this.isCubeInCache(idSchema, idCube)) {
         if (this.metadatas.schemas[idSchema].cubes === undefined)
           this.metadatas.schemas[idSchema].cubes = {};
 
-          this.metadatas.schemas[idSchema].cubes[idCube] = {"caption" : caption};
+          this.metadatas.schemas[idSchema].cubes[idCube] = {"caption" : caption, "description" : description};
       }
     },
 
@@ -858,7 +858,7 @@ analytics.query = (function() {
      * @throws {Query.SchemaNotInDatabaseError} The given schema doesn't exists
      * @throws {Query.IllegalDimensionTypeError} The given dimension type is not allowed
      */
-    cacheDimension : function(idSchema, idCube, idDimension, type, caption) {
+    cacheDimension : function(idSchema, idCube, idDimension, type, caption, description) {
       if (!this.isAllowedDimensionType(type))
         throw new Query.IllegalDimensionTypeError(type+" is not a valid dimension type!");
 
@@ -866,7 +866,7 @@ analytics.query = (function() {
         if (this.metadatas.schemas[idSchema].cubes[idCube].dimensions === undefined)
           this.metadatas.schemas[idSchema].cubes[idCube].dimensions = {};
 
-          this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension] = {"type" : type, "caption" : caption};
+          this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension] = {"type" : type, "caption" : caption, "description" : description};
       }
     },
 
@@ -884,12 +884,12 @@ analytics.query = (function() {
      * @throws {Query.CubeNotInDatabaseError} The given cube doesn't exists
      * @throws {Query.SchemaNotInDatabaseError} The given schema doesn't exists
      */
-    cacheHierarchy : function(idSchema, idCube, idDimension, idHierarchy, caption) {
+    cacheHierarchy : function(idSchema, idCube, idDimension, idHierarchy, caption, description) {
       if (!this.isHierarchyInCache(idSchema, idCube, idDimension, idHierarchy)) {
         if (this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies === undefined)
           this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies = {};
 
-          this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy] = {"caption" : caption};
+          this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy] = {"caption" : caption, "description" : description};
       }
     },
 
@@ -911,12 +911,12 @@ analytics.query = (function() {
      * @throws {Query.CubeNotInDatabaseError} The given cube doesn't exists
      * @throws {Query.SchemaNotInDatabaseError} The given schema doesn't exists
      */
-    cacheLevel : function(idSchema, idCube, idDimension, idHierarchy, idLevel, caption) {
+    cacheLevel : function(idSchema, idCube, idDimension, idHierarchy, idLevel, caption, description) {
       if (!this.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, idLevel)) {
         if (this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels === undefined)
           this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels = [];
 
-          this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels.push({"id" : idLevel, "caption" : caption});
+          this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels.push({"id" : idLevel, "caption" : caption, "description": description});
       }
     },
 
@@ -941,12 +941,12 @@ analytics.query = (function() {
      * @throws {Query.CubeNotInDatabaseError} The given cube doesn't exists
      * @throws {Query.SchemaNotInDatabaseError} The given schema doesn't exists
      */
-    cacheProperty : function(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty, caption, type) {
+    cacheProperty : function(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty, caption, description, type) {
       if (!this.isPropertyInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty)) {
         if (this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels[indexLevel].properties === undefined)
           this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels[indexLevel].properties = {};
 
-          this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels[indexLevel].properties[idProperty] = {"caption" : caption, "type" : type};
+          this.metadatas.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels[indexLevel].properties[idProperty] = {"caption" : caption, "description": description, "type" : type};
       }
     },
 

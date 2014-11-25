@@ -83,13 +83,13 @@ analytics.state = (function() {
     // select first cube if unset of unexistant
     if (_cube === null || cubesAndMeasures[_cube] === undefined) {
       var cubeId = Object.keys(cubesAndMeasures)[0];
-      state.cube(analytics.data.cube(cubeId, cubesAndMeasures[cubeId].caption));
+      state.cube(analytics.data.cube(cubeId, cubesAndMeasures[cubeId].caption, cubesAndMeasures[cubeId].description));
     }
 
     // select first measure if unset of unexistant
     if (_measure === null || cubesAndMeasures[_cube].measures[_measure] === undefined) {
       var measureId = Object.keys(cubesAndMeasures[_cube].measures)[0];
-      state.measure(analytics.data.measure(measureId, cubesAndMeasures[_cube].measures[measureId].caption));
+      state.measure(analytics.data.measure(measureId, cubesAndMeasures[_cube].measures[measureId].caption, cubesAndMeasures[_cube].measures[measureId].description));
     }
 
     analytics.display.showFactSelector(cubesAndMeasures, state.cube(), state.measure(), setCubeAndMeasureCallback);
@@ -126,7 +126,7 @@ analytics.state = (function() {
         var levels     = analytics.query.getLevels(_schema, _cube, dimension, hierarchy);
         var members    = analytics.query.getMembers(_schema, _cube, dimension, hierarchy, 0, properties.length > 0);
 
-        var dimensionObj = analytics.data.dimension(dimension, dimensions[dimension].caption, dimensions[dimension].type, hierarchy, levels, properties);
+        var dimensionObj = analytics.data.dimension(dimension, dimensions[dimension].caption, dimensions[dimension].description, dimensions[dimension].type, hierarchy, levels, properties);
         dimensionObj.addSlice(members);
         _dimensions.push(dimensionObj);
 

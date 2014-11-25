@@ -342,11 +342,36 @@ analytics.charts.chart = (function () {
 
     function displayTitle () {
       if (_chart.params().displayTitle) {
-        $(_selector + ' .chart-title').html(
-          analytics.state.cube().caption() + ' &bull; ' +
-          _dimensions[0].caption() + ' &bull; ' +
-          _dimensions[0].levels()[_dimensions[0].currentLevel()] + ' &bull; ' +
-          analytics.state.measure().caption());
+        var measureTitle;
+        var measureDescription = analytics.state.measure().description();
+        var measureCaption = analytics.state.measure().caption();
+
+        var dimensionTitle;
+        var dimensionDescription = _dimensions[0].description();
+        var dimensionCaption = _dimensions[0].caption();
+
+        if (typeof measureDescription != 'undefined' && measureDescription != measureCaption) {
+          measureTitle = $('<span data-toggle="tooltip" class="chart-infos" data-placement="bottom" title="'+
+            measureDescription +
+            '">' +
+            measureCaption + ' </span>').tooltip({'container': 'body', 'html': true});
+        } else {
+          measureTitle = measureCaption;
+        }
+
+        if (typeof dimensionDescription != 'undefined' && dimensionDescription != dimensionCaption) {
+          dimensionTitle = $('<span data-toggle="tooltip" class="chart-infos" data-placement="bottom" title="'+
+            dimensionDescription +
+            '">' +
+            dimensionCaption + ' </span>').tooltip({'container': 'body', 'html': true});
+        } else {
+          dimensionTitle = dimensionCaption;
+        }
+
+        $(_selector + ' .chart-title').html(analytics.state.cube().caption() + ' &bull; ')
+            .append(dimensionTitle).append(' &bull; ')
+            .append(_dimensions[0].levels()[_dimensions[0].currentLevel()] + ' &bull; ')
+            .append(measureTitle);
       }
     }
 

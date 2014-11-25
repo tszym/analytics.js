@@ -1,14 +1,15 @@
-analytics.data.dimension = function (id, caption, type, hierarchy, levels, properties) {
+analytics.data.dimension = function (id, caption, description, type, hierarchy, levels, properties) {
 
   // returned object
   var _dimension = {};
 
-  var _id         = id;
-  var _caption    = caption;
-  var _hierarchy  = hierarchy;
-  var _type       = type;
-  var _levels     = levels;
-  var _properties = properties;
+  var _id          = id;
+  var _caption     = caption;
+  var _description = description;
+  var _hierarchy   = hierarchy;
+  var _type        = type;
+  var _levels      = levels;
+  var _properties  = properties;
 
   var _membersStack = []; // stack of all slice done on this hierarchy
   var _filters      = []; // list of selected elements on the screen for the last level of the stack
@@ -27,6 +28,10 @@ analytics.data.dimension = function (id, caption, type, hierarchy, levels, prope
 
   _dimension.caption = function() {
     return _caption;
+  };
+
+  _dimension.description = function() {
+    return _description;
   };
 
   _dimension.hierarchy = function() {

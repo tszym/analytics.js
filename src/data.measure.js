@@ -1,7 +1,8 @@
-analytics.data.measure = function (id, caption) {
+analytics.data.measure = function (id, caption, description) {
 
   var _id = id;
   var _caption = caption;
+  var _description = description;
 
   // returned object
   var _measure = {};
@@ -15,6 +16,12 @@ analytics.data.measure = function (id, caption) {
   _measure.caption = function(caption) {
     if (!arguments.length) return _caption;
     _caption = caption;
+    return _measure;
+  };
+
+  _measure.description = function(description) {
+    if (!arguments.length) return _description;
+    _description = description;
     return _measure;
   };
 

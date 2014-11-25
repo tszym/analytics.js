@@ -220,20 +220,30 @@ analytics.display.factSelector = (function () {
       var useCallback = function() { callback($(this).attr('data-id')); return false; };
 
       for (var elID in element.data) {
+        var eltDescription = element.data[elID].description;
+        var eltCaption = element.data[elID].caption;
 
         if (addLinks) {
-          element.list.append(
-            $('<li></li>').append(
-              $('<a'+linkClass+' href="#" data-id="'+elID+'">'+element.data[elID].caption+'</a>')
-              .click(useCallback)
-            )
-          );
+          var aTag;
+          if (typeof eltDescription != 'undefined' && eltDescription != eltCaption) {
+            aTag = $('<a'+linkClass+' href="#" data-id="'+elID+'" data-toggle="tooltip" class="chart-infos" data-placement="bottom" title="' + eltDescription + '">'+eltCaption+'</a>')
+                      .tooltip({'container': 'body', 'html': true});
+          } else {
+            aTag = $('<a'+linkClass+' href="#" data-id="'+elID+'">'+eltCaption+'</a>');
+          }
+          aTag.click(useCallback);
+          element.list.append($('<li></li>').append(aTag));
         }
         else {
-          element.list.append(
-            $('<li '+linkClass+' data-id="'+elID+'">'+element.data[elID].caption+'</li>')
-            .click(useCallback)
-          );
+          var liTag;
+          if (typeof eltDescription != 'undefined' && eltDescription != eltCaption) {
+            liTag = $('<li '+linkClass+' data-id="'+elID+'" data-toggle="tooltip" class="chart-infos" data-placement="bottom" title="' + eltDescription + '">'+eltCaption+'</li>')
+                      .tooltip({'container': 'body', 'html': true});
+          } else {
+            liTag = $('<li '+linkClass+' data-id="'+elID+'">'+eltCaption+'</li>');
+          }
+          liTag.click(useCallback);
+          element.list.append(liTag);
         }
 
       }
@@ -319,7 +329,7 @@ analytics.display.factSelector = (function () {
     selectMeasure : function (measureID) {
       this.setSelectedMeasure(measureID);
       this.callback(analytics.data.cube(this.cube,    this.data[this.cube].caption),
-                    analytics.data.measure(measureID, this.data[this.cube].measures[measureID].caption));
+                    analytics.data.measure(measureID, this.data[this.cube].measures[measureID].caption, this.data[this.cube].measures[measureID].description));
     },
 
     /**
