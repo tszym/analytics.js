@@ -1,9 +1,41 @@
+/**
+## analytics.charts.**chart** class
+
+This class is an abstract class that is the base class for all charts in analytics.
+
+### *Object* analytics.charts.**chart**(*string* selector, *data.dimension[]* dimensions)
+
+**/
 analytics.charts.chart = (function () {
 
   function charts_chart_nostatic (selector, dimensions) {
 
     // returned object
     var _chart = {};
+
+    /**
+    ### Chart object
+
+    #### public methods
+    * *string* charts.chart.**type**()
+    * *mixed* charts.chart.**dimensions**([*data.dimension[]* dimensions])
+    * *boolean* charts.chart.**useDimension**(*data.dimension[]* dimensions)
+    * *mixed* charts.chart.**extraMeasures**(*data.measure[]* extraMeasures)
+    * *string* charts.chart.**selector**()
+    * *string* charts.chart.**selectorName**()
+    * *integer* charts.chart.**width**()
+    * *integer* charts.chart.**height**()
+    * *object* charts.chart.**element**() : returns the dc.js chart associated with the chart
+    * *object* charts.chart.**options**() : return the options of the chart
+    * *this* charts.chart.**setOption**(*string* key, *mixed* value)
+    * *object* charts.chart.**player**() : return the current player object of the chart
+    * *this* charts.chart.**build**() : build and update the chart
+    * *this* charts.chart.**render**() : render the dc.js chart
+    * *this* charts.chart.**redraw**() : update the chart and redraw the dc.js chart
+    * *this* charts.chart.**resize**()
+    * *this* charts.chart.**updateColors**()
+    * charts.chart.**delete**()
+    **/
 
     // data
     var _dimensions    = dimensions ? dimensions : [];
@@ -139,12 +171,6 @@ analytics.charts.chart = (function () {
       return _chart;
     };
 
-    // TODO
-    _chart.delete = function () {
-      dc.deregisterChart(_chart.element());
-      $(_selector).empty();
-    };
-
     // display sub-functions
     function initContainer () {
       $(_selector).html('<div class="chart-header"></div><div class="chart-container"></div>');
@@ -161,15 +187,57 @@ analytics.charts.chart = (function () {
         .width(_chart.width())
         .height(_chart.height());
       _chart._resizeSpecific();
-      _chart.render();
+      return _chart.render();
     };
 
+    _chart.updateColors = function () {
+      if (typeof _chart.element().colorDomain == 'function') {
+        _chart.element()
+          .colors(d3.scale.quantize().range(_dimensions[0].colors()))
+          .colorDomain(_chart._niceDomain(_dimensions[0].crossfilterGroup(_extraMeasures), analytics.state.measure().id()));
+      }
+      return _chart;
+    };
+
+    _chart.delete = function () {
+      dc.deregisterChart(_chart.element());
+      $(_selector).empty();
+    };
+
+    /**
+    #### abstract methods
+
+    These methods are left for the children classes to implement.
+
+    * charts.chart.**_resizeSpecific**() : called when the chart is resized
+    * charts.chart.**_createDcElement**(): called to create the dc.js chart
+    * charts.chart.**_initContainerSpecific**() : used to initialize elements aside from the dc.js chart
+    * charts.chart.**_initChartSpecific**(): used to initialize the chart
+    * charts.chart.**_updateChartSpecific**() : called when the chart is updated
+
+    **/
     _chart._resizeSpecific        = function () {};
     _chart._createDcElement       = function () {};
     _chart._initContainerSpecific = function () {};
     _chart._initChartSpecific     = function () {};
     _chart._updateChartSpecific   = function () {};
 
+    /**
+    #### Internal functions
+
+    * charts.chart.**initHeader**()
+    * charts.chart.**initChartCommon**()
+    * charts.chart.**updateHeader**()
+    * charts.chart.**updateChartCommon**()
+    * charts.chart.**displayChartMetaContainer**() : fill the header initialized with `initHeader`
+    * charts.chart.**displayTip**() : add a tip icon in the chart's header
+    * charts.chart.**displayPlay**(): add the play button in the chart's header
+    * charts.chart.**displayCanDrillRoll**(): add an icon indicating if we can drill-down or roll-up on the chart
+    * charts.chart.**displayLevels**(): add the display of the current level number as well as the total number of levels in the chart's header
+    * charts.chart.**displayTitle**()
+    * charts.chart.**displayParams**(): add the button to configure the chart in the chart's header
+    * *[integer, integer]* charts.chart.**_niceDomain**(*crossfilter.group* crossfilterGroup, *data.measure* measure) : compute [min, max] values, from a crossfilter group and a measure, to generate the color scales
+    **/
     function initHeader() {
       displayChartMetaContainer();
       displayTip();
@@ -198,13 +266,6 @@ analytics.charts.chart = (function () {
       }
     }
 
-    _chart.updateColors = function () {
-      if (typeof _chart.element().colorDomain == 'function') {
-        _chart.element()
-          .colors(d3.scale.quantize().range(_dimensions[0].colors()))
-          .colorDomain(_chart._niceDomain(_dimensions[0].crossfilterGroup(_extraMeasures), analytics.state.measure().id()));
-      }
-    };
 
     function updateHeader() {
       displayCanDrillRoll();
@@ -304,10 +365,6 @@ analytics.charts.chart = (function () {
       }
     }
 
-    /**
-     * Display an icon whether we can drill-down or roll-up on the chart
-     * @param {string} chart Chart id
-     */
     function displayCanDrillRoll () {
       if (_chart.params().displayCanDrillRoll) {
         var el = $(_selector + ' .chart-meta .chart-levels-icons');
@@ -330,10 +387,6 @@ analytics.charts.chart = (function () {
       }
     }
 
-    /**
-     * Display the number of levels and the current level
-     * @param {string} chart Chart id
-     */
     function displayLevels () {
       if (_chart.params().displayLevels) {
         $(_selector + ' .chart-meta .chart-levels').html((_dimensions[0].currentLevel()+1)+'/'+(_dimensions[0].maxLevel()+1));
@@ -375,12 +428,6 @@ analytics.charts.chart = (function () {
       }
     }
 
-    /**
-     * Display and configure the params tool
-     * @param  {String} chart id of the chart of which we want to display params tool
-     * @private
-     * @todo Update the content of the modal form to put real values in the fields and preselect current values
-     */
     function displayParams () {
       if (_chart.params().displayParams) {
         var el = $('<span class="btn-params btn btn-xs btn-default"><i class="fa fa-nomargin fa-cog"></i></span>');
@@ -389,14 +436,6 @@ analytics.charts.chart = (function () {
       }
     }
 
-   /**
-     * Get a crossfilter's group domain with nice values (rounded)
-     *
-     * @private
-     * @param {Object} crossfilterGroup - group of which you want a nice domain
-     * @param {String} [measure] - name of the nested value accessor in `d.value`. Needed for group with more than 1 aggregated measure.
-     * @return {Array} [min, max] rounded
-     */
     _chart._niceDomain = function (crossfilterGroup, measure) {
       function getVal(d) {
         if (typeof measure == 'undefined' || typeof d[measure] == 'undefined')
