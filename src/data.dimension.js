@@ -82,7 +82,11 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   };
 
   _dimension.getGeoProperty = function () {
-    return analytics.query.getGeoProperty(analytics.state.schema(), analytics.state.cube().id(), _dimension.id(), _dimension.hierarchy());
+    for (var i in _properties) {
+      if (_properties[i].type() == "Geometry")
+        return _properties[i];
+    }
+    return null;
   };
 
   _dimension.colors = function (colors) {
