@@ -77,8 +77,8 @@ analytics.display = (function() {
   };
 
   function getChartPosition(chart) {
-    for (var i in _charts)
-      for (var j in _charts[i])
+    for (var i = 0; i < _charts.length; i++)
+      for (var j = 0; j < _charts[i].length; j++)
         if (chart.selector() == _charts[i][j].selector())
           return {i : i, j : j};
 
@@ -140,7 +140,7 @@ analytics.display = (function() {
       $(columnCharts[offset]).before(container);
   }
 
-    function replaceChart(chart, newType) {
+  function replaceChart(chart, newType) {
     var pos = getChartPosition(chart);
     var selector = chart.selector();
     chart.delete();
@@ -713,6 +713,8 @@ analytics.display = (function() {
 
     return true;
   }
+
+  // importTest "display-test-accessors.js"
 
   return display;
 })();

@@ -194,7 +194,7 @@ analytics.data = (function() {
 
     if (dimension._crossfilterDimension === null) {
       dimension._crossfilterDimension = _dataCrossfilter.dimension(function(d) { return d[dimension.id()]; });
-      if (filters.length) {
+      if (filters !== undefined && filters.length) {
         dimension._crossfilterDimension.filterFunction(function (d) {
           for(var i = 0; i < filters.length; i++) {
             if (filters[i] == d)

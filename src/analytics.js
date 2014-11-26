@@ -87,6 +87,8 @@ analytics.init = function (queryAPI, state) {
   analytics.display.initRender();
 };
 
+// importTest "analytics-test-accessors.js"
+
 // import "query.js"
 // import "data.js"
 // import "data.cube.js"
