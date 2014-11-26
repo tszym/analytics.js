@@ -1,5 +1,5 @@
 analytics.display.factSelector = (function () {
-  
+
   var FactSelector = {
 
     /**
@@ -28,7 +28,7 @@ analytics.display.factSelector = (function () {
     cubes : [],
 
     /**
-     * 
+     *
      */
     measures : [],
 
@@ -217,7 +217,9 @@ analytics.display.factSelector = (function () {
 
       element.list = $('<ul '+listClass+'></ul>');
 
-      var useCallback = function() { callback($(this).attr('data-id')); return false; };
+      var useCallback = function() {
+          callback($(this).attr('data-id')); return false;
+      };
 
       for (var elID in element.data) {
         var eltDescription = element.data[elID].description;
@@ -327,9 +329,22 @@ analytics.display.factSelector = (function () {
      * @private
      */
     selectMeasure : function (measureID) {
-      this.setSelectedMeasure(measureID);
-      this.callback(analytics.data.cube(this.cube,    this.data[this.cube].caption),
-                    analytics.data.measure(measureID, this.data[this.cube].measures[measureID].caption, this.data[this.cube].measures[measureID].description));
+      var that = this;
+
+      function changeCube() {
+        that.setSelectedMeasure(measureID);
+        that.callback(analytics.data.cube(that.cube,    that.data[that.cube].caption),
+                      analytics.data.measure(measureID, that.data[that.cube].measures[measureID].caption, that.data[that.cube].measures[measureID].description));
+      }
+
+      if (this.displayedCube != this.cube) {
+        bootbox.confirm(analytics.csts.txts.changeCube, function(result) {
+          if (result)
+            changeCube();
+        });
+      }
+      else
+        changeCube();
     },
 
     /**

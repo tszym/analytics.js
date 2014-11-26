@@ -63,7 +63,8 @@ var analytics = {
         cubes    : 'Cubes available:',
         measures : 'Measures available:'
       },
-      hiddenChart : 'This chart is hidden because the dimension shown is aggregated'
+      hiddenChart : 'This chart is hidden because the dimension shown is aggregated',
+      changeCube : 'You are changing the cube beeing studied. If you continue, your current analysis of this cube will be lost. Do you want to continue?'
     },
     tips : {
       charts : {}
