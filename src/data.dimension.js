@@ -213,7 +213,7 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
 
   _dimension.removeFilter = function (element) {
     if (_filters.indexOf(element) >= 0)
-      _filters.push(element);
+      _filters.splice(_filters.indexOf(element));
     return _dimension;
   };
 
