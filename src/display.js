@@ -464,6 +464,13 @@ analytics.display = (function() {
   * display.**_updateFilter**(*data.dimension* dimension, *string* element, *boolean* addOrRemove) : update filters on charts
       using the given dimension to match the fact that `element` must be filtered (`addOrRemove = true`) or not (`addOrRemove = false`)
   **/
+  display.filterAll = function () {
+    analytics.state.dimensions().forEach(function (dimension) {
+      dimension.filters([]);
+    });
+    dc.filterAll();
+  };
+
   display.filterAllChartsUsingDimension = function (dimension) {
     dimension.filters([]);
     var charts = display.getChartsUsingDimension(dimension);
@@ -521,7 +528,7 @@ analytics.display = (function() {
 
     // reset button
     $(analytics.csts.css.reset).click(function() {
-        dc.filterAll();
+        display.filterAll();
         display.redraw();
       }
     );
