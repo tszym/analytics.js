@@ -1,3 +1,14 @@
+/**
+## data.**cube**(*string* id, *string* caption)
+
+This object describes an OLAP cube. It has the following functions:
+
+* *mixed* data.cube.**id**([*string* id])
+* *mixed* data.cube.**caption**([*string* caption])
+* *boolean* data.cube.**equals**(*data.cube* other)
+
+`id` and `caption` are getters/setters.
+**/
 analytics.data.cube = function (id, caption, description) {
 
   var _id = id;

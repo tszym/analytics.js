@@ -462,6 +462,66 @@ analytics.charts.chart = (function () {
     return _chart;
   }
 
+  /**
+  ### Chart configuration and inheritance
+
+  #### Options and parameters
+
+  Each chart is configured by two static objects `params` (static parameters of the chart)  and `options` (dynamic options of the chart):
+
+  ```js
+  chart.params = {
+    nbDimensionsMin     : 1,
+    nbDimensionsMax     : 1,
+    nbExtraMeasuresMin  : 0,
+    nbExtraMeasuresMax  : 0,
+    displayTitle        : true,
+    displayParams       : true,
+    displayLevels       : true,
+    displayCanDrillRoll : true,
+    displayTip          : true,
+    displayPlay         : false
+  };
+
+  chart.options = {
+    sort            : null,
+    labels          : null,
+    playerTimeout   : 300,
+    height          : 300,
+    heightReference : "px"
+  };
+  ```
+
+  `options` is meant to contain the default configuration of the chat that you will be able to modify during the life of the chart,
+  whereas `params` can't be modified and describe what the chart can do. If an option is set to `null`, it means that it's not
+  available for the given chart, and you can't modify it.
+
+  On your chart, you can redefine part of `params` and `options`.
+
+  #### Dimensions and measures
+
+  In addition to `params` object, the following static functions can be defined:
+
+  * charts.chart.**isPossibleDimension**(*data.dimension* dimension) : is the given dimension a good candidate to be used in the chart's dimensions
+  * charts.chart.**isPossibleExtraMeasure**(*data.measure* measure) : is the given measure a good candidate to be used in the chart's measures
+  * charts.chart.**arePossibleDimensionsSpecific**(*data.dimension[]* dimensions) : is the given list of dimensions possible
+  * charts.chart.**arePossibleExtraMeasuresSpecific**(*data.measure[]* measures) : is the given list of measures possible
+
+  These functions will be called by the two following static functions, available on each chart:
+
+  * charts.chart.**arePossibleDimensions**(*data.dimension[]* dimensions)
+  * charts.chart.**arePossibleExtraMeasures**(*data.measure[]* measures)
+
+  These functions will check if lists of dimensions and measures are possible, by checking that they match the min/max in `params`, that each
+  element match `isPossibleDimension/ExtraMeasure` and the list match `arePossibleDimensions/ExtraMeasuresSpecific`.
+
+  #### Inheritance
+
+  To inherit from the abstract and default `analytics.charts.chart`, you must call the static function
+  analytics.charts.chart.**extend**(**function** chartConstructor), with `chartConstructor` being the constructor of your chart.
+
+  For more explainations, see the tutorial [Adding a new chart](https://github.com/loganalysis/analytics/wiki/Adding-a-new-chart).
+  **/
   charts_chart_nostatic.params = {
     nbDimensionsMin     : 1,
     nbDimensionsMax     : 1,

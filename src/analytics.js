@@ -1,7 +1,13 @@
 /**
-## `analytics` namespace
+## General notes about *analytics.js*
 
-### analytics.csts
+Most of the objects in _analytics.js_ use the principle of having one function that can be both used as a getter and a setter.
+If you pass a parameter to the function, it is a setter, it will save the given value and return the object itself for chaining.
+If you don't pass a parameter, it will behave as a getter and return the saved value.
+
+## **analytics** namespace
+
+### analytics.**csts**
 
 `analytics.csts` is a deep map containing various constants used by _analytics.js_. It contains mostly CSS selectors and texts (for internationalization).
 
@@ -22,6 +28,7 @@ analytics.csts = {
     charts : {} // tips for the charts
   }
 }
+```
 **/
 var analytics = {
   version: '%VERSION%',
@@ -60,15 +67,12 @@ var analytics = {
 };
 
 /**
-### analytics.init(queryAPI, [state])
+### analytics.**init**(*Object* queryAPI, [*Object* state])
 
-This function will initialize the whole component. Prior to it, you can set some constants.
+This function will initialize the whole component thanks to a given`queryAPI` to query the OLAP database, and optionally
+with a given state. Prior to it, you can set some constants.
 
 For a standard user of the package, it is the only function you should call.
-
-Parameters:
-* Object `queryAPI`: an API component to query the OLAP database
-* Object `state` (optional): The state of the interface, that was retrived with `analytics.state()`, to restore an analysis
 **/
 analytics.init = function (queryAPI, state) {
   analytics.query.queryAPI(queryAPI);
@@ -87,8 +91,8 @@ analytics.init = function (queryAPI, state) {
 // import "data.js"
 // import "data.cube.js"
 // import "data.measure.js"
-// import "data.dimension.js"
 // import "data.property.js"
+// import "data.dimension.js"
 // import "state.js"
 // import "display.js"
 // import "display.factSelector.js"

@@ -1,3 +1,8 @@
+/**
+## analytics.**query** namespace
+
+This namespace helps query the OLAP cube by specifying the API provided to it in order to perform the queries.
+**/
 analytics.query = (function() {
 
   var _queryAPI = null;

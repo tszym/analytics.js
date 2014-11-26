@@ -1,5 +1,8 @@
-// TODO check when chart.render/redraw is called and if build is called at the same time
+/**
+## `analytics.display` namespace
 
+This namespace contains functions related to the interface of the analysis and its rendering.
+**/
 analytics.display = (function() {
 
   var display = {};
@@ -11,144 +14,20 @@ analytics.display = (function() {
   var _resizableColumns;
   var _savedColumnWidths;
 
-  display.charts = function () {
-    return Array.prototype.concat.apply([], _charts);
-  };
-
-  display.chartsInLayout = function () {
-    return _charts;
-  };
-
-  function initButtons () {
-
-    // reset button
-    $(analytics.csts.css.reset).click(function() {
-        dc.filterAll();
-        display.redraw();
-      }
-    );
-
-    // resize button
-    var paddingTopInit = $('body').css('padding-top');
-    var headerInitHeight = $(analytics.csts.css.header).height();
-    var interfaceInitTop = $(analytics.csts.css.columns).cssUnit('top'); // ex : [100, 'px']
-
-    $(analytics.csts.css.resize).click(function() {
-      $(analytics.csts.css.header).toggle();
-
-      if ($(analytics.csts.css.header).is(':hidden')) {
-        $(analytics.csts.css.columns).css('top', interfaceInitTop[0] - headerInitHeight + interfaceInitTop[1]);
-        $('body').css('padding-top', '0');
-      }
-      else {
-        $(analytics.csts.css.columns).css('top', interfaceInitTop.join(''));
-        $('body').css('padding-top', paddingTopInit);
-      }
-
-      resize();
-    });
-  }
-
   /**
-   * Initialize the columns resize behavior
-   */
-  function initResize () {
+  ### Simple getters / setters
 
-    // init column resize
-    $(analytics.csts.css.columnsContainer).resizableColumns();
-    _resizableColumns = $(analytics.csts.css.columnsContainer).data('resizableColumns');
+  A few simple getters/setters are available:
 
-    // restore columns widths
-    if (typeof _savedColumnWidths != 'undefined') {
-      _resizableColumns.restoreColumnWidths(_savedColumnWidths);
-    }
-
-    // resize charts at end
-    var timer = window.setTimeout(function() {}, 0);
-    $(window).on('resize', function() {
-      window.clearTimeout(timer);
-      timer = window.setTimeout(function() {
-        $(window).trigger('resizeend');
-      }, 350);
-    });
-    $(window).on('resizeend', resize);
-    $(window).on("column:resize:stop", resize);
-
-    //$(analytics.csts.css.columns).sortable({ distance: 20, connectWith: analytics.csts.css.columns });
-    //$(analytics.csts.css.columns).disableSelection();
-  }
-
+  * *mixed* display.**columnWidths**(*float[]* savedColumnWidths) : return the width of the columns (in percent of screen width)
+  * *string* display.**getTip**(*string* tipType, *string* tipName) : return a tip string or an empty string if the tip does not exists
+  **/
   display.columnWidths = function (savedColumnWidths) {
     if (!arguments.length) return _resizableColumns.saveColumnWidths();
     _savedColumnWidths = savedColumnWidths;
     return display;
   };
 
-  display.init = function () {
-    initCharts();
-    initButtons();
-    initResize();
-  };
-
-  /**
-   * Resize the charts according to the window size.
-   *
-   * @private
-   */
-  function resize () {
-    display.charts().forEach(function (chart) {
-      chart.resize();
-    });
-  }
-
-  function rebuild () {
-    var charts = display.charts();
-    for (var i in charts) {
-      charts[i].build();
-    }
-  }
-
-  display.initRender = function () {
-    rebuild();
-    filterChartsAsDimensionsState();
-    dc.renderAll();
-  };
-
-  display.render = function () {
-    rebuild();
-    dc.renderAll();
-  };
-
-  display.redraw = function () {
-    rebuild();
-    dc.redrawAll();
-  };
-
-  function updateFilters() {
-
-    // for each dimension, if there is filters to process
-    analytics.state.dimensions().forEach(function (dimension) {
-      var filters = dimension.filters();
-      var charts = display.getChartsUsingDimension(dimension);
-
-      if (filters.length && charts.length) {
-        var chart = charts[0];
-        filters.forEach(function (filter) {
-          if (!chart.element().hasFilter(filter))
-            chart.element().filter(filter);
-        });
-      }
-
-    });
-  }
-
-  display.showFactSelector = function(cubesAndMeasures, cube, measure, callback) {
-    analytics.display.factSelector.init(analytics.csts.css.factSelector, analytics.csts.txts.factSelector.cubes, analytics.csts.txts.factSelector.measures);
-    analytics.display.factSelector.setMetadata(cubesAndMeasures);
-    analytics.display.factSelector.setCallback(callback);
-    analytics.display.factSelector.setSelectedCube(cube.id());
-    analytics.display.factSelector.setSelectedMeasure(measure.id());
-  };
 
   display.getTip = function (tipType, tipName) {
     if (analytics.csts.tips[tipType] && analytics.csts.tips[tipType][tipName])
@@ -157,9 +36,45 @@ analytics.display = (function() {
       return "";
   };
 
+  /**
+  ### Charts principle
+
+  The main role of *display* is to organize and configure charts. The charts are organized in 3 columns, so each
+  chart is positioned in a column *i* and at an offet *j*.
+
+  ### Charts' getters
+
+  To handle charts, the following getters are available:
+
+  * *charts.chart[]* display.**charts**() : return a flat list of the charts on the interface
+  * *charts.chart[][]* display.**chartsInLayout**() : return a list of columns, each column being a list of the charts in the columns
+  * *jQueryObject* display.**getColumn**(*int* i) : return the jQuery object of the column
+  * *charts.chart[]* display.**getChartsUsingDimension**(*data.dimension* dimension) : return the list of charts using a dimension
+  * *{i: int, j: int}* display.**getChartPosition**(*charts.chart* chart) : return an object describing to column and offset of a chart
+  * *data.measure[]* display.**getExtraMeasuresUsed**() : return the list of extra measures used by charts
+  **/
+  display.charts = function () {
+    return Array.prototype.concat.apply([], _charts);
+  };
+
+  display.chartsInLayout = function () {
+    return _charts;
+  };
+
   function getColumn(i) {
     return $($(analytics.csts.css.columns)[i]);
   }
+
+  display.getChartsUsingDimension = function (dimension) {
+
+    var charts = display.charts();
+    var out = [];
+    for (var i in charts)
+      if (charts[i].useDimension(dimension))
+        out.push(charts[i]);
+
+    return out;
+  };
 
   function getChartPosition(chart) {
     for (var i in _charts)
@@ -170,24 +85,35 @@ analytics.display = (function() {
     return null;
   }
 
-  function emptyChartsColumn(i) {
-    _charts[i].forEach(function (chart) {
-      var selector = chart.selector();
-      chart.delete();
-      $(selector).remove();
+  display.getExtraMeasuresUsed = function () {
+
+    var extraMeasuresMap = {};
+    display.charts().forEach(function(chart) {
+      chart.extraMeasures().forEach(function (measure) {
+        extraMeasuresMap[measure.id()] = measure;
+      });
     });
-    _charts[i] = [];
-  }
+    var out = [];
+    for (var measureId in extraMeasuresMap) {
+      out.push(extraMeasuresMap[measureId]);
+    }
+    return out;
+  };
 
-  function replaceChart(chart, newType) {
-    var pos = getChartPosition(chart);
-    var selector = chart.selector();
-    chart.delete();
-    chart = analytics.charts[newType](selector);
-    _charts[pos.i][pos.j] = chart;
-    return chart;
-  }
+  /**
+  ### Charts' creation
 
+  To create charts, the following functions are available:
+
+  * *charts.chart* display.**insertChart**(*charts.chart* chart, *int* column, *int* offset) : insert a chart on the interface, at the given position
+  * display.**replaceChart**(*charts.chart* chart, *string* newType) : replace a chart with a new chart of the given `type`
+  * display.**emptyChartsColumn**(*int* i) : remove all charts of the *i*-th column
+  * display.**initCharts**() : initialize the charts default layout (1 map, 1 timeline, 1 bar, 1 pie, 1 table)
+  * display.**createCharts**(*Object[][]* charts, *Object<string, data.dimension>* dimensionsMap, *Object<string, data.measure>* measuresMap) :
+      recreate charts from a given saved layout, using maps of dimensions and measures
+  * display.**createWordClouds**(*data.dimension[]* dimensions) : create one wordcloud for each dimension of the dimensions given, and insert it in the first column
+  * display.**assignDimensions**(*data.dimension[]* dimensions, *data.dimension* geoDimension, *data.dimension* timeDimension) : assign the dimensions to the charts
+  **/
   function insertChart(chart, column, offset) {
 
     column = Math.max(0, Math.min(_charts.length - 1    , column)); // bound column between 0 and the nb of columns - 1
@@ -212,6 +138,24 @@ analytics.display = (function() {
     // insert at offset position
     else
       $(columnCharts[offset]).before(container);
+  }
+
+    function replaceChart(chart, newType) {
+    var pos = getChartPosition(chart);
+    var selector = chart.selector();
+    chart.delete();
+    chart = analytics.charts[newType](selector);
+    _charts[pos.i][pos.j] = chart;
+    return chart;
+  }
+
+  function emptyChartsColumn(i) {
+    _charts[i].forEach(function (chart) {
+      var selector = chart.selector();
+      chart.delete();
+      $(selector).remove();
+    });
+    _charts[i] = [];
   }
 
   function initCharts () {
@@ -240,6 +184,16 @@ analytics.display = (function() {
     });
   };
 
+  display.createWordClouds = function (dimensions) {
+    // remove old wordclouds
+    emptyChartsColumn(0);
+
+    for (var i in dimensions) {
+      var dimension = dimensions[i];
+      insertChart(analytics.charts.wordcloudWithLegend("#chart-" + _nextChartId++, [dimension]), 0, Infinity);
+    }
+  };
+
   display.assignDimensions = function(dimensions, geoDimension, timeDimension) {
 
     var i;
@@ -255,179 +209,16 @@ analytics.display = (function() {
     }
   };
 
-  display.createWordClouds = function (dimensions) {
-    // remove old wordclouds
-    emptyChartsColumn(0);
-
-    for (var i in dimensions) {
-      var dimension = dimensions[i];
-      insertChart(analytics.charts.wordcloudWithLegend("#chart-" + _nextChartId++, [dimension]), 0, Infinity);
-    }
-  };
-
   /**
-   * Get the charts associated to a dimension
-   *
-   * @private
-   * @param {string} dimension
-   * @return {Array<string>} charts ID using the input dimension
-   */
-  display.getChartsUsingDimension = function (dimension) {
+  ### Charts' update
 
-    var charts = display.charts();
-    var out = [];
-    for (var i in charts)
-      if (charts[i].useDimension(dimension))
-        out.push(charts[i]);
+  To modify the charts, the following functions are available:
 
-    return out;
-  };
-
-  display.getExtraMeasuresUsed = function () {
-
-    var extraMeasuresMap = {};
-    display.charts().forEach(function(chart) {
-      chart.extraMeasures().forEach(function (measure) {
-        extraMeasuresMap[measure.id()] = measure;
-      });
-    });
-    var out = [];
-    for (var measureId in extraMeasuresMap) {
-      out.push(extraMeasuresMap[measureId]);
-    }
-    return out;
-  };
-
-  /**
-   * Filter all elements on the charts associated to a dimension
-   *
-   * @private
-   * @param {string} dimension
-   */
-  display.filterAllChartsUsingDimension = function (dimension) {
-    dimension.filters([]);
-    var charts = display.getChartsUsingDimension(dimension);
-    for (var i in charts) {
-      charts[i].element().filterAll();
-    }
-  };
-
-  function filterChartsAsDimensionsState () {
-
-    // for each dimension, if there is filters to process
-    analytics.state.dimensions().forEach(function (dimension) {
-      var filters = dimension.filters();
-      var charts = display.getChartsUsingDimension(dimension);
-
-      if (filters.length && charts.length) {
-        var chart = charts[0];
-        filters.forEach(function (filter) {
-          if (!chart.element().hasFilter(filter)) {
-            chart.element().filter(filter);
-          }
-        });
-      }
-
-    });
-
-  }
-
-  /**
-   * Drill down on the given dimension on a member. Should called inside callback functions.
-   * Will update the charts consequently.
-   *
-   * @private
-   * @param {analytics.dimension} dimension id of the dimension on which we want to drill down
-   * @param {string} member id of the member on which we want to drill down
-   * @param {string} dcChartID id of the dc chart on which the evenement was called
-   */
-  display.drillDown = function (dimension, member, dcChartID, keys) {
-
-    if (dimension.isDrillPossible()) {
-
-      // update display
-      display.getChartsUsingDimension(dimension).forEach(function (chart) {
-        if (chart.element()._onZoomIn !== undefined && chart.element().chartID() !== dcChartID) {
-          chart.element()._onZoomIn(member);
-        }
-      });
-
-      // update state
-      if (keys.ctrl)
-        analytics.state.drillDown(dimension, member, 'selected');
-      else
-        analytics.state.drillDown(dimension, member, 'simple');
-
-      // reset filter on charts using this dimension
-      display.filterAllChartsUsingDimension(dimension);
-
-      // update interface
-      display.render();
-    }
-  };
-
-    /**
-   * Roll up on the given dimension. Should called inside callback functions.
-   * Will update the charts consequently.
-   *
-   * @private
-   * @param {string} dimension id of the dimension on which we want to roll up
-   * @param {string} dcChartID id of the dc chart on which the evenement was called
-   * @param {integer} [nbLevels=1] number of levels to roll up
-   */
-  display.rollUp = function (dimension, dcChartID, nbLevels) {
-    nbLevels = nbLevels || 1;
-    nbLevels = Math.min(nbLevels, dimension.nbRollPossible());
-
-    if (nbLevels > 0) {
-
-      // zoom out on charts
-      for (var i = 0; i < nbLevels; i++) {
-        display.getChartsUsingDimension(dimension).forEach(function (chart) {
-          if (chart.element()._onZoomOut !== undefined && chart.element().chartID() !== dcChartID) {
-            chart.element()._onZoomOut();
-          }
-        });
-      }
-
-      // reset filter on charts using this dimension
-      display.filterAllChartsUsingDimension(dimension);
-
-      // roll up state
-      analytics.state.rollUp(dimension, nbLevels);
-
-      // update interface
-      display.render();
-    }
-  };
-
-  var _frozenColorScales = false;
-
-  display.freezeColorScales = function () {
-    _frozenColorScales = true;
-  };
-
-  display.unfreezeColorScales = function () {
-    _frozenColorScales = false;
-  };
-
-  display._updateFilter = function (dimension, element, addOrRemove) {
-    // update dimension
-    dimension.filter(element, addOrRemove);
-
-    // update charts using dimension
-    var charts = display.getChartsUsingDimension(dimension);
-    for (var i in charts) {
-      if (charts[i].element().hasFilter(element) != addOrRemove) {
-        charts[i].element().filter(element);
-      }
-    }
-
-    if (!_frozenColorScales) {
-      display.charts().map(function (chart) { chart.updateColors(); });
-    }
-  };
-
+  * display.**_displayParamsForm**(*charts.chart* chart) : show the form allowing to change the configuration of the given chart
+  * display.**updateChart**(*charts.chart* chart, *Object* options) : modify the given chart with the given options
+  * display.**freezeColorScales**()
+  * display.**unfreezeColorScales**()
+  **/
   display._displayParamsForm = function (chart) {
 
     var options = chart.options();
@@ -582,22 +373,6 @@ analytics.display = (function() {
     $('#chartparams').modal('show');
   };
 
-  function arraysEquals(array1, array2) {
-    if (array1.length != array2.length)
-      return false;
-
-    for (var i in array1)
-      if (!array1[i].equals(array2[i]))
-        return false;
-
-    return true;
-  }
-
-  /**
-   * Update the configuration of a chart
-   * @param  {String} chart   Chart id
-   * @param  {Object} options New config
-   */
   function updateChart (chart, options) {
 
     var doRender = false;
@@ -667,6 +442,267 @@ analytics.display = (function() {
       chart.render();
     else if (doRedraw)
       chart.redraw();
+  }
+
+  var _frozenColorScales = false;
+
+  display.freezeColorScales = function () {
+    _frozenColorScales = true;
+  };
+
+  display.unfreezeColorScales = function () {
+    _frozenColorScales = false;
+  };
+
+  /**
+  ### Charts' filters
+
+  To handle chart's filtering, the following functions are available:
+
+  * display.**filterAllChartsUsingDimension**(*data.dimension* dimension) : reset filters on the charts using the given dimension
+  * display.**filterChartsAsDimensionsState**() : update the charts filters to match the filters set on the dimensions
+  * display.**_updateFilter**(*data.dimension* dimension, *string* element, *boolean* addOrRemove) : update filters on charts
+      using the given dimension to match the fact that `element` must be filtered (`addOrRemove = true`) or not (`addOrRemove = false`)
+  **/
+  display.filterAllChartsUsingDimension = function (dimension) {
+    dimension.filters([]);
+    var charts = display.getChartsUsingDimension(dimension);
+    for (var i in charts) {
+      charts[i].element().filterAll();
+    }
+  };
+
+  function filterChartsAsDimensionsState () {
+
+    // for each dimension, if there is filters to process
+    analytics.state.dimensions().forEach(function (dimension) {
+      var filters = dimension.filters();
+      var charts = display.getChartsUsingDimension(dimension);
+
+      if (filters.length && charts.length) {
+        var chart = charts[0];
+        filters.forEach(function (filter) {
+          if (!chart.element().hasFilter(filter)) {
+            chart.element().filter(filter);
+          }
+        });
+      }
+
+    });
+  }
+
+  display._updateFilter = function (dimension, element, addOrRemove) {
+    // update dimension
+    dimension.filter(element, addOrRemove);
+
+    // update charts using dimension
+    var charts = display.getChartsUsingDimension(dimension);
+    for (var i in charts) {
+      if (charts[i].element().hasFilter(element) != addOrRemove) {
+        charts[i].element().filter(element);
+      }
+    }
+
+    if (!_frozenColorScales) {
+      display.charts().map(function (chart) { chart.updateColors(); });
+    }
+  };
+
+  /**
+  ### Initialization
+
+  To initialize display, the following functions are available:
+
+  * display.**initButtons**() : initialize the reset and resize buttons
+  * display.**initResize**() : initialize the resize behavior of the interface, to adapt charts when the window is resized
+  * display.**init**() : initialize the whole interface (call the functions above)
+  **/
+  function initButtons () {
+
+    // reset button
+    $(analytics.csts.css.reset).click(function() {
+        dc.filterAll();
+        display.redraw();
+      }
+    );
+
+    // resize button
+    var paddingTopInit = $('body').css('padding-top');
+    var headerInitHeight = $(analytics.csts.css.header).height();
+    var interfaceInitTop = $(analytics.csts.css.columns).cssUnit('top'); // ex : [100, 'px']
+
+    $(analytics.csts.css.resize).click(function() {
+      $(analytics.csts.css.header).toggle();
+
+      if ($(analytics.csts.css.header).is(':hidden')) {
+        $(analytics.csts.css.columns).css('top', interfaceInitTop[0] - headerInitHeight + interfaceInitTop[1]);
+        $('body').css('padding-top', '0');
+      }
+      else {
+        $(analytics.csts.css.columns).css('top', interfaceInitTop.join(''));
+        $('body').css('padding-top', paddingTopInit);
+      }
+
+      resize();
+    });
+  }
+
+  function initResize () {
+
+    // init column resize
+    $(analytics.csts.css.columnsContainer).resizableColumns();
+    _resizableColumns = $(analytics.csts.css.columnsContainer).data('resizableColumns');
+
+    // restore columns widths
+    if (typeof _savedColumnWidths != 'undefined') {
+      _resizableColumns.restoreColumnWidths(_savedColumnWidths);
+    }
+
+    // resize charts at end
+    var timer = window.setTimeout(function() {}, 0);
+    $(window).on('resize', function() {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(function() {
+        $(window).trigger('resizeend');
+      }, 350);
+    });
+    $(window).on('resizeend', resize);
+    $(window).on("column:resize:stop", resize);
+
+    //$(analytics.csts.css.columns).sortable({ distance: 20, connectWith: analytics.csts.css.columns });
+    //$(analytics.csts.css.columns).disableSelection();
+  }
+
+
+
+  display.init = function () {
+    initCharts();
+    initButtons();
+    initResize();
+  };
+
+  /**
+  ### Rendering
+
+  For the rendering of the elements of the interface, display has the following functions:
+
+  * display.**showFactSelector**(*Object* cubesAndMeasures, *data.cube* cube, *data.measure* measure, *function* callback)
+  * display.**resize**() : resize the charts
+  * display.**rebuild**() : rebuild the charts
+  * display.**initRender**() : render the charts for the first time (will ask the charts to load the filters of the dimensions)
+  * display.**render**() : render the charts
+  * display.**redraw**() : redraw the charts
+  **/
+  display.showFactSelector = function(cubesAndMeasures, cube, measure, callback) {
+    analytics.display.factSelector.init(analytics.csts.css.factSelector, analytics.csts.txts.factSelector.cubes, analytics.csts.txts.factSelector.measures);
+    analytics.display.factSelector.setMetadata(cubesAndMeasures);
+    analytics.display.factSelector.setCallback(callback);
+    analytics.display.factSelector.setSelectedCube(cube.id());
+    analytics.display.factSelector.setSelectedMeasure(measure.id());
+  };
+
+  function resize () {
+    display.charts().forEach(function (chart) {
+      chart.resize();
+    });
+  }
+
+  function rebuild () {
+    var charts = display.charts();
+    for (var i in charts) {
+      charts[i].build();
+    }
+  }
+
+  display.initRender = function () {
+    rebuild();
+    filterChartsAsDimensionsState();
+    dc.renderAll();
+  };
+
+  display.render = function () {
+    rebuild();
+    dc.renderAll();
+  };
+
+  display.redraw = function () {
+    rebuild();
+    dc.redrawAll();
+  };
+
+  /**
+  ### Drill-down / roll-up
+
+  When doing a drill-down / roll-up, the charts will have to call the following functions:
+
+  * display.**drillDown**(*data.dimension* dimension, *string* member, *int* dcChartID, *Object* keys) : do a drill-down
+     on the given member of the given dimension, knowning that the drill-down has been sent by the chart `dcChartID`,
+     whith the `keys` pressed described like `{ctrl: <boolean>, alt: <boolean>, maj: <boolean>}`. Depending on the keys,
+     the behavior can difer.
+  * display.**rollUp**(*data.dimension* dimension, *int* dcChartID, [*int* nbLevels=1]) : Roll-up on the given dimension
+     `nbLevels` times, knowning that the roll-up has been sent by the chart `dcChartID`.
+  **/
+  display.drillDown = function (dimension, member, dcChartID, keys) {
+
+    if (dimension.isDrillPossible()) {
+
+      // update display
+      display.getChartsUsingDimension(dimension).forEach(function (chart) {
+        if (chart.element()._onZoomIn !== undefined && chart.element().chartID() !== dcChartID) {
+          chart.element()._onZoomIn(member);
+        }
+      });
+
+      // update state
+      if (keys.ctrl)
+        analytics.state.drillDown(dimension, member, 'selected');
+      else
+        analytics.state.drillDown(dimension, member, 'simple');
+
+      // reset filter on charts using this dimension
+      display.filterAllChartsUsingDimension(dimension);
+
+      // update interface
+      display.render();
+    }
+  };
+
+  display.rollUp = function (dimension, dcChartID, nbLevels) {
+    nbLevels = nbLevels || 1;
+    nbLevels = Math.min(nbLevels, dimension.nbRollPossible());
+
+    if (nbLevels > 0) {
+
+      // zoom out on charts
+      for (var i = 0; i < nbLevels; i++) {
+        display.getChartsUsingDimension(dimension).forEach(function (chart) {
+          if (chart.element()._onZoomOut !== undefined && chart.element().chartID() !== dcChartID) {
+            chart.element()._onZoomOut();
+          }
+        });
+      }
+
+      // reset filter on charts using this dimension
+      display.filterAllChartsUsingDimension(dimension);
+
+      // roll up state
+      analytics.state.rollUp(dimension, nbLevels);
+
+      // update interface
+      display.render();
+    }
+  };
+
+  // compare two arrays of objects having .equals() method
+  function arraysEquals(array1, array2) {
+    if (array1.length != array2.length)
+      return false;
+
+    for (var i in array1)
+      if (!array1[i].equals(array2[i]))
+        return false;
+
+    return true;
   }
 
   return display;

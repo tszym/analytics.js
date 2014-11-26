@@ -1,3 +1,9 @@
+/**
+## data.**dimension**(*string* id, *string* caption, *string* type, *string* hierarchy, *string[]* levels, [*data.property[]* properties])
+
+This object describes an OLAP dimension. It is also used to store lots of informations about how the dimension is
+analysed, by storing lots of things linked to the dimension, such as drill-down / roll-up and filters information.
+**/
 analytics.data.dimension = function (id, caption, description, type, hierarchy, levels, properties) {
 
   // returned object
@@ -21,7 +27,24 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
 
   var _aggregated = false;
 
+  /**
+  This object has the following getters/setters:
 
+  ### Simple getters
+
+  This object have some simple getters:
+
+  * *string* data.dimension.**id**()
+  * *string* data.dimension.**caption**()
+  * *string* data.dimension.**hierarchy**()
+  * *string[]* data.dimension.**levels**() : captions of the levels of the dimension
+  * *string* data.dimension.**type**()
+  * *data.property[]* data.dimension.**properties**() : list of properties to load with members
+  * *data.property* data.dimension.**getGeoProperty**() : return null or the geometrical property
+  * *mixed* data.dimension.**colors**(colors) : get of set a color palette for this dimension
+  * *mixed* data.dimension.**aggregated**(*boolean* aggregate) : getter / setter indicating if we need to aggregate the dimension or not
+  * *boolean* data.dimension.**equals**(*data.dimension* other)
+  **/
   _dimension.id = function() {
     return _id;
   };
@@ -50,10 +73,6 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
     return _properties;
   };
 
-  _dimension.membersStack = function () {
-    return _membersStack;
-  };
-
   _dimension.currentLevel = function() {
     return _membersStack.length - 1;
   };
@@ -65,6 +84,72 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   _dimension.getGeoProperty = function () {
     return analytics.query.getGeoProperty(analytics.state.schema(), analytics.state.cube().id(), _dimension.id(), _dimension.hierarchy());
   };
+
+  _dimension.colors = function (colors) {
+    if (!arguments.length) return _colors;
+    _colors = colors;
+    return _dimension;
+  };
+
+  _dimension.aggregated = function (aggregate) {
+    if (!arguments.length) return _aggregated;
+    _aggregated = aggregate;
+  };
+
+
+  /**
+  ### Drill-down / roll-up
+
+  To handle drill-down / roll-up, the object stores a stack of the members shown
+  for each level displayed. For example, at the beggining the stack will contain
+  Europe's NUTS0. Then if you drill on Germany, we add Germany's NUTS1 to the stack.
+
+  Note that members are always stored in an Object that associate the id of each member to
+  and object containing the caption of the member and the property value if available.
+  Here is an example of what members looks like:
+
+  ```js
+  {
+  "FR" : // member key
+    {
+      "caption" : "France",
+      "geometry" : {<geoJSONofFrance>}, // value of property "geometry"
+      "area" : 123.5 // value of property "area"
+    },
+  "BE" :
+    {
+      "caption" : "Belgium",
+      "geometry" : {<geoJSONofBelgium>},
+      "area" : 254.1
+    },
+    ...
+  }
+  ```
+
+  To handle this stack and the drill-down / roll-up functionnality, the following
+  functions are available:
+
+  * *Object[]* data.dimension.**membersStack**()
+  * *this* data.dimension.**addSlice**(*Object* members)
+  * *this* data.dimension.**removeLastSlice**()
+  * *Object* data.dimension.**getLastSlice**()
+  * *Object* data.dimension.**getSlice**(*int* level)
+  * *int* data.dimension.**currentLevel**() : index of the current level displayed
+  * *int* data.dimension.**maxLevel**() : index of the maximum level available
+  * *boolean* data.dimension.**isDrillPossible**()
+  * *boolean* data.dimension.**isRollPossible**()
+  * *int* data.dimension.**nbRollPossible**() : number of roll we can do
+  **/
+
+  _dimension.membersStack = function () {
+    return _membersStack;
+  };
+
+  _dimension.equals = function (other) {
+    return (typeof other.id == "function") && (_id === other.id());
+  };
+
+
 
   _dimension.addSlice = function (members) {
     _membersStack.push(members);
@@ -96,7 +181,16 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
     return _dimension.currentLevel();
   };
 
+  /**
+  ### Filters
 
+  Filters on the dimensions are handled by the following functions:
+
+  * *mixed* data.dimension.**filters**([*string[]* filters]) : get of set filtered members (identified by their ids)
+  * *this* data.dimension.**filter**(*string* element, *boolean* add) : add (`add = true`) or remove (`add = false`) an element from the filters
+  * *this* data.dimension.**addFilter**(*string* element)
+  * *this* data.dimension.**removeFilter**(*string* element)
+  **/
   _dimension.filters = function (filters) {
     if (!arguments.length) return _filters;
     _filters = filters;
@@ -119,13 +213,15 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
     return _dimension;
   };
 
+  /**
+  ### Crossfilter objects
 
-  _dimension.colors = function (colors) {
-    if (!arguments.length) return _colors;
-    _colors = colors;
-    return _dimension;
-  };
+  You can get crossfilter objects related to this dimension using the following getters:
 
+  * *crossfilter.dimension* data.dimension.**crossfilterDimension**()
+  * *crossfilter.group* data.dimension.**crossfilterGroup**([*data.measure[]* extraMeasures]) :
+    get a crossfilter group, optionally with extra measures (see data.getCrossfilterGroup for more details)
+  **/
   _dimension.crossfilterDimension = function () {
     return analytics.data.getCrossfilterDimension(_dimension, _filters);
   };
@@ -133,23 +229,6 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   _dimension.crossfilterGroup = function (extraMeasures) {
     return analytics.data.getCrossfilterGroup(_dimension, extraMeasures);
   };
-
-
-  /**
-   * Indicate if a dimension is aggregated
-   *
-   * @param {boolean} aggregate
-   */
-  _dimension.aggregated = function (aggregate) {
-    if (!arguments.length) return _aggregated;
-    _aggregated = aggregate;
-  };
-
-
-  _dimension.equals = function (other) {
-    return (typeof other.id == "function") && (_id === other.id());
-  };
-
 
   return _dimension;
 };

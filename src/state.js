@@ -1,3 +1,13 @@
+/**
+## analytics.**state** namespace
+
+This namespace contains functions related to the state of the analysis of the OLAP cube.
+
+### *Object* analytics.**state**([*Object*])
+
+`analytics.state()` is not only a namespace but also a function which is a getter/setter of
+the state. It therefore allows you to get the state of the analysis and restore it later.
+**/
 analytics.state = (function() {
 
   var state = function (state) {
@@ -12,9 +22,21 @@ analytics.state = (function() {
   var _measureObj = null;
   var _dimensions = [];
 
-  /*
-   * Getters and setters
-   */
+  /**
+  ### OLAP state
+
+  This namespace has the following simple getters / setters regarding the state of the analysis:
+
+  * *mixed* state.**schema**([*string* schema])
+  * *mixed* state.**cube**([*data.cube* cube])
+  * *mixed* state.**measure**([*data.measure* measure])
+  * *data.dimension[]* state.**dimensions**()
+  * **setCubeAndMeasureCallback**(*data.cube* cube, *data.measure* measure)
+
+  The function you should call to change the cube and / or measure of the state is `setCubeAndMeasureCallback`
+  which will process the change and update the interface. The other getters/setters won't do anything with
+  the new value except saving it.
+  **/
   state.schema = function(schema) {
     if (!arguments.length) return _schema;
     _schema = schema;
@@ -36,13 +58,6 @@ analytics.state = (function() {
     return _dimensions;
   };
 
-  /**
-   * Callback function to call when changing the cube and measure to display
-   *
-   * @private
-   * @param {analytics.data.cube} cube
-   * @param {analytics.data.measure} measure
-   */
   function setCubeAndMeasureCallback(cube, measure) {
 
     // changing cube = reset all
@@ -64,12 +79,17 @@ analytics.state = (function() {
   }
 
   /**
-   * Initialize schema, cube and measure and display the fact selector
-   * Selects first schema, cube and measure if not set by setState
-   *
-   * @throws {Exception} if problem during analytics.query
-   * @private
-   */
+  ### Initialization
+
+  To initialize the state, two functions are available:
+
+  #### state.**initMeasure**()
+
+  This function will initialize the schema, cube and measure of the state. If those values where
+  set from a saved state, we will check that those are possible values.
+
+  This function also renders the factSelector.
+  **/
   state.initMeasure = function () {
 
     // select first schema if unset of unexistant
@@ -96,14 +116,14 @@ analytics.state = (function() {
   };
 
   /**
-   * Initialize the metadatas according to the selected cube, ie get dimensions (standard and particular ones),
-   * hierarchies, assign them to the charts.
-   *
-   * Slice the dimensions on for the members of the first level
-   *
-   * @throws {Exception} if problem during analytics.query
-   * @private
-   */
+  #### state.**initDimensions**()
+
+  Load and prepare the dimensions of the current selected cube, if those are not already loaded from a saved state.
+  Each dimension will be sliced on all the members of the first level.
+
+  This function will also assign these dimensions to the charts by calling `analytics.display.assignDimensions()`,
+  and will create the wordclouds by calling `analytics.display.createWordClouds()`
+  **/
   state.initDimensions = function () {
     // TODO shouldn't creating dimension objects be done by analytics.query?
 
@@ -146,14 +166,22 @@ analytics.state = (function() {
   };
 
   /**
-   * Drill down on the given dimension on a member. Should called inside callback functions.
-   * Will update the charts consequently.
-   *
-   * @private
-   * @param {analytics.data.dimension} dimension on which we want to drill down
-   * @param {string} member on which we want to drill down
-   * @param {string} [type] type of the drill down ("simple", "selected", "partial")
-   */
+  ### Drill-down / roll-up
+
+  Two functions are available to handle drill-down and roll-up of the current state.
+
+  #### state.**drillDown**(*data.dimension* dimension, *string* member, *string* type)
+
+  Drill down on a given member of the given dimension and reload data.
+
+  You can choose the type of drill-down with the `type` parameter, which can be:
+
+  * `simple`: Drill down on the given member, ie show the chidren of the given member (go from NUTS0 to Germany's NUTS1)
+  * `selected`: Drill down on all the selected members, ie show the children of all these members at the same time (go from NUTS0 to Germany & France's NUTS1)
+  * `partial`: Drill down on the given member and keep the current displayed members except the drilled one (go from NUTS0 to NUTS0 except Germany + Germany's NUTS1)
+
+  `partial` drill-down is not implemented yet.
+  **/
   state.drillDown = function (dimension, member, type) {
 
     if (dimension.isDrillPossible()) {
@@ -181,13 +209,10 @@ analytics.state = (function() {
   };
 
   /**
-   * Roll up on the given dimension. Should called inside callback functions.
-   * Will update the charts consequently.
-   *
-   * @private
-   * @param {analytics.data.dimension} dimension on which we want to roll up
-   * @param {integer} [nbLevels=1] number of levels to roll up
-   */
+  ### state.**rollUp**(*data.dimension* dimension, [*int* nbLevels=1])
+
+  Roll up on the given dimension, optionally `nbLevels` times, and reload data.
+  **/
   state.rollUp = function (dimension, nbLevels) {
     nbLevels = nbLevels || 1;
     nbLevels = Math.min(nbLevels, dimension.nbRollPossible());

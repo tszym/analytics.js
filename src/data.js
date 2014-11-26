@@ -1,17 +1,25 @@
+/**
+## analytics.**data** namespace
+
+This namespace contains functions related to the retrial of OLAP data.
+**/
 analytics.data = (function() {
 
+  // dataset returned by analytics.query
   var _data = {};
 
+  // *analytics.data.measure[]* list of measures loaded
   var _measuresLoaded = [];
+
+  // *crossfilter* crossfilter object containing the dataset
   var _dataCrossfilter;
 
 
   /**
-   * Get the number of crossed members that is to say the number of possible combinations of members
-   *
-   * @private
-   * @return {int} number of combinations
-   */
+  ### *int* data.**numberOfCrossedMembers**()
+
+  Get the number of crossed members that is to say the number of possible combinations of members
+  **/
   function numberOfCrossedMembers() {
     var nb = 1;
     var dimensions = analytics.state.dimensions();
@@ -25,22 +33,22 @@ analytics.data = (function() {
   }
 
   /**
-   * Indicate if we should use client or server side aggregates.
-   *
-   * @private
-   * @return {boolean} true if client side, false if server side
-   */
+  ### *boolean* data.**isClientSideAggrPossible**()
+
+  Indicate if we should use client or server side aggregates.
+  **/
   function isClientSideAggrPossible() {
     return numberOfCrossedMembers() < 20000;
   }
 
   /**
-   * Set the crossfilter dataset and dispose of all previous dimensions and groups because they are linked to old data.
-   *
-   * @private
-   * @param {string} JSON data
-   * @return {crossfilter} crosfilter dataset
-   */
+  ### *crossfilter* data.**setCrossfilterData**(*Object* data)
+
+  Takes a dataset following [crossfilter's input requirements](https://github.com/square/crossfilter/wiki/API-Reference#crossfilter)
+  and create a crossfilter dataset with it.
+
+  It also disposes of all previous dimensions and groups because they are linked to old data.
+  **/
   function setCrossfilterData(data) {
     var dimensions = analytics.state.dimensions();
 
@@ -66,11 +74,10 @@ analytics.data = (function() {
   }
 
   /**
-   * Get the data for client side agregates
-   *
-   * @private
-   * @return {Object} crossfilter dataset
-   */
+  ### *Object* data.**getDataClientAggregates**()
+
+  Get the data using client side agregates and returns a dataset matching *crossfilter's input requirements*
+  **/
   function getDataClientAggregates() {
     analytics.query.clear();
 
@@ -106,11 +113,10 @@ analytics.data = (function() {
   }
 
   /**
-   * Get the data for server side agregates
-   *
-   * @private
-   * @return {Object} crossfilter dataset
-   */
+  ### *Object* data.**getDataServerAggregates**()
+
+  Get the data using server side agregates and returns a dataset matching *crossfilter's input requirements*
+  **/
   function getDataServerAggregates() {
     var metadata = {
       "api" : analytics.query,
@@ -144,13 +150,11 @@ analytics.data = (function() {
   }
 
   /**
-   * Get the data from the cube according to the last slices and run them through CrossFilter
-   * Formerly getData()
-   *
-   * @return {Object} crossfilter dataset
-   *
-   * TODO add a try/catch around this
-   */
+  ### *crossfilter* data.**load**()
+
+  Load data from the cube according to the last slices & dices and creates a crossfitler dataset with it.
+  **/
+  // TODO add a try/catch around this
   _data.load = function() {
     if (isClientSideAggrPossible()) {
       return getDataClientAggregates();
@@ -159,6 +163,12 @@ analytics.data = (function() {
     }
   };
 
+  /**
+  ### *crossfilter* data.**loadIfNeeded**()
+
+  Calls `data.load()` if extra measures used in charts are not already loaded. Should be called if you changed
+  extra measures used by charts.
+  **/
   _data.loadIfNeeded = function() {
     var measuresLoadedIds = _measuresLoaded.map(function (m) { return m.id(); });
     var measuresToLoad = analytics.display.getExtraMeasuresUsed();
@@ -174,6 +184,12 @@ analytics.data = (function() {
     return false;
   };
 
+  /**
+  ### *crossfilter.dimension* data.**getCrossfilterDimension**(*data.dimension* dimension, [*string[]* filters])
+
+  Return the *crossfilter.dimension* object related to the current *crossfilter* dataset for the given `dimension`.
+  Also preset filters on the dimension according to the given list of members in `filters` parameter (optional).
+  **/
   _data.getCrossfilterDimension = function(dimension, filters) {
 
     if (dimension._crossfilterDimension === null) {
@@ -192,10 +208,26 @@ analytics.data = (function() {
     return dimension._crossfilterDimension;
   };
 
-  _data.getCrossfilterGroup = function(dimension, measures) {
+  /**
+  ### *crossfilter.group* data.**getCrossfilterGroup**(*data.dimension* dimension, [*data.measure[]* extraMeasures])
+
+  Return the *crossfilter.group* object related to the current *crossfilter* dataset for the given `dimension`.
+  This group aggregates data by summing them.
+
+  If a given list of extra measures is passed as `extraMeasures`, the group will contain multiple values for
+  each key, one per i.e. for the current state measure and for each extra measure passed. In that case, each datum
+  of the group will therefore be:
+
+  ```js
+  { key : "memberKey", value : {stateMeasureId : val1, extraMeasure1Id : val2, ...}}
+  ```
+
+  [See an example using the same principle in dc.js documentation](http://dc-js.github.io/dc.js/docs/stock.html#section-11)
+  **/
+  _data.getCrossfilterGroup = function(dimension, extraMeasures) {
 
     // simple grouping
-    if (!Array.isArray(measures) || measures.length === 0) {
+    if (!Array.isArray(extraMeasures) || extraMeasures.length === 0) {
       if (dimension._crossfilterGroups.default === undefined) {
         dimension._crossfilterGroups.default = dimension
           .crossfilterDimension()
@@ -208,9 +240,9 @@ analytics.data = (function() {
     // if we have a custom list of measures, we compute the group
     else {
       var measuresToGroup = [analytics.state.measure().id()];
-      for (var i in measures)
-        if (measuresToGroup.indexOf(measures[i].id()) < 0)
-          measuresToGroup.push(measures[i].id());
+      for (var i in extraMeasures)
+        if (measuresToGroup.indexOf(extraMeasures[i].id()) < 0)
+          measuresToGroup.push(extraMeasures[i].id());
       var key = measuresToGroup.sort().join(',');
 
       if (dimension._crossfilterGroups[key] === undefined) {
