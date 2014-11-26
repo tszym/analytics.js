@@ -189,7 +189,7 @@ analytics.state = (function() {
 
       switch (type) {
         case 'selected':
-        var toDrill = dimension.filters().length ? dimension.filters() : dimension.getLastSlice();
+        var toDrill = dimension.filters().length ? dimension.filters() : Object.keys(dimension.getLastSlice());
         newMembers = {};
         toDrill.forEach(function (member) {
           var newMembersTemp = analytics.query.getMembers(_schema, _cube, dimension.id(), dimension.hierarchy(), dimension.currentLevel(), dimension.properties().length > 0, member);
