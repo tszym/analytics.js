@@ -1,7 +1,7 @@
 /**
 ## analytics.charts.**wordcloudWithLegend** class
 
-This class represents a timeline and inherits from analytics.charts.**wordcloud**.
+This class represents a timeline and inherits from analytics.charts.**chart**.
 
 The wordcloudWithLegend is a wordcloud chart which:
 
@@ -25,15 +25,16 @@ analytics.charts.wordcloudWithLegend = (function () {
     };
 
     _chart._initChartSpecific = function () {
+      _chart.element()
+        .showLegend(_chart.selector()+'-legend')
+        .colorCalculator(function (d) { return d ? _chart.element().colors()(d) : '#ccc'; });
+    };
 
+    _chart._initContainerSpecific = function () {
       $(_chart.selector()).append('<div class="wordcloud">'+
           '<div class="wordcloud-chart" id="'+_chart.selectorName()+'"></div>'+
           '<div class="wordcloud-legend" id="'+_chart.selectorName()+'-legend"></div>'+
         '</div>');
-
-      _chart.element()
-        .showLegend(_chart.selector()+'-legend')
-        .colorCalculator(function (d) { return d ? _chart.element().colors()(d) : '#ccc'; });
     };
 
     return _chart;
