@@ -1,3 +1,9 @@
+/**
+## analytics.charts.**map** class
+
+This class represents a geo-choropleth map and inherits from analytics.charts.**chart**.
+
+**/
 analytics.charts.map = (function () {
   var map = function (selector, dimensions) {
 
@@ -77,9 +83,6 @@ analytics.charts.map = (function () {
         });
     };
 
-    /**
-     * TODO not sure if this is used and when this should be
-     */
     _chart.resizeSpecific = function () {
       var width = $(_chart.selector()).width() - 30;
       var height = $(_chart.selector()).height();
@@ -90,13 +93,15 @@ analytics.charts.map = (function () {
     };
 
     /**
-     * Transform metadata from the geographical dimension to a list of GeoJSON.
-     *
-     * @private
-     * @param {Object} data Metadata from the Query class
-     * @param {string} geoProperty id of the property containing the geoJSON in the data
-     * @return {Array<Object>} list of GeoJSON file with captions of the areas as the "name" property in each GeoJSON
-     */
+    #### *object[]* **transformSpatialMetadata**(data, geoProperty)
+    Transform metadata from the geographical dimension to a list of GeoJSON.
+
+    * *data*: Metadata from the Query class
+    * *geoProperty*: id of the property containing the geoJSON in the data
+
+    Returns a list of GeoJSON files with captions of the areas as the "name" property in each GeoJSON
+
+    **/
     function transformSpatialMetadata (data, geoProperty) {
 
       var out = [];

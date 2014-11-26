@@ -1,3 +1,14 @@
+/**
+## analytics.charts.**timeline** class
+
+This class represents a timeline and inherits from analytics.charts.**bar**.
+
+The timeline is a bar chart which:
+
+* Is limited to the Time dimension
+* Has play capabilities enabled
+
+**/
 analytics.charts.timeline = (function () {
   var timelineChart = function (selector, dimensions) {
 

@@ -1,3 +1,9 @@
+/**
+## analytics.charts.**pie** class
+
+This class represents a pie chart and inherits from analytics.charts.**chart**.
+
+**/
 analytics.charts.pie = (function () {
   var pieChart = function (selector, dimensions) {
 

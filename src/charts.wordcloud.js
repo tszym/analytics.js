@@ -1,3 +1,9 @@
+/**
+## analytics.charts.**wordcloud** class
+
+This class represents a wordcloud and inherits from analytics.charts.**chart**.
+
+**/
 analytics.charts.wordcloud = (function () {
   var wordcloudChart = function (selector, dimensions) {
 

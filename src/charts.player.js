@@ -1,11 +1,12 @@
 /**
- * Class to create play objects from a chart.
- * Play objects are timers that select successively all members
- * of the chart from which they are created
- *
- * @param chart
- *  The chart on which play the data
- */
+## analytics.charts.**player** class
+
+This class represent an object that handles playing the data displayed on a chart.
+
+### *Object* analytics.charts.**player**([*Object*])
+
+Creates a player object for the given chart.
+**/
 analytics.charts.player = function (chart) {
 
   var _dimension = chart.dimensions()[0];
@@ -40,47 +41,41 @@ analytics.charts.player = function (chart) {
   };
 
   /**
-   * Return a boolean whether or not the player is running
-   */
+  ### Player object
+
+  * *boolean* charts.player.**running**()
+  * *mixed* charts.player.**timeout**([*integer* timeout])
+  * *mixed* charts.player.**callback**([*function* cb])
+  * *this* charts.player.**start**()
+  * *this* charts.player.**pause**()
+
+  The optional `callback` is called at the end of the play.
+  The timeout is the time to wait between two members.
+
+  **/
+
   _play.running = function () {
     return _running;
   };
 
-  /**
-   * Get or set the timeout. This timeout is the time between the selection
-   * of two successive members
-   *
-   * @param {int} timeout in milliseconds
-   */
   _play.timeout = function(timeout) {
     if (!arguments.length) return _timeout;
     _timeout = timeout;
     return _play;
   };
 
-  /**
-   * Get or set the callback function called when the play ends
-   *
-   * @param {Object} cb
-   */
   _play.callback = function(cb) {
     if (!arguments.length) return _callback;
     _callback = cb;
     return _play;
   };
 
-  /**
-   * Start or resume the play
-   */
   _play.start = function() {
     _running = true;
     setTimeout(_step, _timeout);
     return _play;
   };
 
-  /**
-   * Pause the play
-   */
   _play.pause = function() {
     _running = false;
     return _play;

@@ -1,3 +1,9 @@
+/**
+## analytics.charts.**bubble** class
+
+This class represents a bubble chart and inherits from analytics.charts.**chart**.
+
+**/
 analytics.charts.bubble = (function () {
   var bubbleChart = function (selector, dimensions) {
 

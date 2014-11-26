@@ -1,3 +1,16 @@
+/**
+## analytics.charts.**wordcloudWithLegend** class
+
+This class represents a timeline and inherits from analytics.charts.**wordcloud**.
+
+The wordcloudWithLegend is a wordcloud chart which:
+
+* Has a color legend
+* Can't be configured
+
+This chart is intended to be used in a dimension list.
+
+**/
 analytics.charts.wordcloudWithLegend = (function () {
   var wordcloudChart = function (selector, dimensions) {
 

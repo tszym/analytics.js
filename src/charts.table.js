@@ -1,3 +1,9 @@
+/**
+## analytics.charts.**table** class
+
+This class represents a data table and inherits from analytics.charts.**chart**.
+
+**/
 analytics.charts.table = (function () {
   var table = function (selector, dimensions) {
 

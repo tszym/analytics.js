@@ -1,3 +1,9 @@
+/**
+## analytics.charts.**bar** class
+
+This class represents a bar chart and inherits from analytics.charts.**chart**.
+
+**/
 analytics.charts.bar = (function () {
   var barChart = function (selector, dimensions) {
 
