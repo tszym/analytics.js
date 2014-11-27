@@ -301,9 +301,14 @@ analytics.state = (function() {
           return analytics.data.property(property, propertiesMap[property].caption, propertiesMap[property].type);
         });
 
-        var dimensionObj = analytics.data.dimension(dimension.id, dimensions[dimension.id].caption, dimensions[dimension.id].type, dimension.hierarchy, levels, properties);
+        var dimensionObj = analytics.data.dimension(
+          dimension.id,
+          dimensions[dimension.id].caption, dimensions[dimension.id].description, dimensions[dimension.id].type,
+          dimension.hierarchy, levels, properties
+        );
+        dimensionObj.filters(dimension.filters);
         dimension.membersStack.forEach(function (members, levelId) {
-          dimensionObj.addSlice(analytics.query.getMembersInfos(savedState.schema, savedState.cube, dimension.id, dimension.hierarchy, levelId, members, dimension.properties));
+          dimensionObj.addSlice(analytics.query.getMembersInfos(savedState.schema, savedState.cube, dimension.id, dimension.hierarchy, levelId, members, dimension.properties.length > 0));
         });
         dimensionObj.filters(dimension.filters);
 
