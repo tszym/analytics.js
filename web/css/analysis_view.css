@@ -97,10 +97,38 @@ html, body {
 
 div.dc-chart {
 	float: none;
-	/* position: relative; */
+	position: relative;
 }
 
-.empty-chart {
+.chart-text {
+	display: none;
+}
+
+.chart-hidden .chart-text {
+	display: block;
+	text-align: center;
+	padding: 30px;
+	font-style: italic;
+	font-size: 110%;
+}
+
+.chart-hidden.chart-wordcloudWithLegend .chart-text {
+	display: none;
+}
+
+.chart-hidden.chart-wordcloudWithLegend .chart-header {
+	margin-bottom: 5px;
+}
+
+.chart-hidden .chart-container {
+	display: none;
+}
+
+.chart-hidden .wordcloud-legend {
+	display: none;
+}
+
+.chart-hidden #zoom {
 	display: none;
 }
 
