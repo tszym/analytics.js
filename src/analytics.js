@@ -33,6 +33,7 @@ analytics.csts = {
 var analytics = {
   version: '%VERSION%',
   csts : {
+    crossfilterClientVsServerThreshold : 20000,
     resizeDelay : 350,
     css : {
       header           : '.navbar',

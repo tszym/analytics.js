@@ -33,12 +33,12 @@ analytics.data = (function() {
   }
 
   /**
-  ### *boolean* data.**isClientSideAggrPossible**()
+  ### *boolean* data.**isClientSideAggrPossible**([*int* value])
 
   Indicate if we should use client or server side aggregates.
   **/
-  function isClientSideAggrPossible() {
-    return numberOfCrossedMembers() < 20000;
+  function isClientSideAggrPossible(value) {
+    return (value ? value : numberOfCrossedMembers()) < analytics.csts.crossfilterClientVsServerThreshold;
   }
 
   /**
