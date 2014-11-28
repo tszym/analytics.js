@@ -26,7 +26,7 @@ analytics.charts.wordcloudWithLegend = (function () {
 
     _chart._initChartSpecific = function () {
       _chart.element()
-        .showLegend(_chart.selector()+'-legend')
+        .showLegend(_chart.selector()+' .wordcloud-legend')
         .colorCalculator(function (d) { return d ? _chart.element().colors()(d) : '#ccc'; });
 
       $(_chart.selector()+' .chart-header').css('cursor', 'pointer');
@@ -37,10 +37,14 @@ analytics.charts.wordcloudWithLegend = (function () {
     };
 
     _chart._initContainerSpecific = function () {
-      $(_chart.selector()).append('<div class="wordcloud">'+
-          '<div class="wordcloud-chart" id="'+_chart.selectorName()+'"></div>'+
-          '<div class="wordcloud-legend" id="'+_chart.selectorName()+'-legend"></div>'+
-        '</div>');
+      $(_chart.selector()).append('<div class="wordcloud-legend"></div>');
+    };
+
+    _chart._updateHeaderSpecific = function () {
+      if (_chart.dimensions()[0].aggregated())
+        $(_chart.selector() + ' .chart-title').prepend('<i class="fa fa-chevron-right"></i>');
+      else
+        $(_chart.selector() + ' .chart-title').prepend('<i class="fa fa-chevron-down"></i>');
     };
 
     return _chart;
