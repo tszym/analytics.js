@@ -695,6 +695,8 @@ analytics.display = (function() {
       // roll up state
       analytics.state.rollUp(dimension, nbLevels);
 
+      filterChartsAsDimensionsState();
+
       // update interface
       display.render();
     }

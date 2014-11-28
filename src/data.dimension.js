@@ -17,8 +17,7 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   var _levels      = levels;
   var _properties  = properties;
 
-  var _membersStack = []; // stack of all slice done on this hierarchy
-  var _filters      = []; // list of selected elements on the screen for the last level of the stack
+  var _stack = []; // stack of all slice done on this hierarchy
 
   var _colors = ["#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"];
 
@@ -74,7 +73,7 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   };
 
   _dimension.currentLevel = function() {
-    return _membersStack.length - 1;
+    return _stack.length - 1;
   };
 
   _dimension.maxLevel = function() {
@@ -146,31 +145,41 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   **/
 
   _dimension.membersStack = function () {
-    return _membersStack;
+    return _stack.map(function (level) { return level.members; });
+  };
+
+  _dimension.filtersStack = function () {
+    return _stack.map(function (level) { return level.filters; });
   };
 
   _dimension.equals = function (other) {
     return (typeof other.id == "function") && (_id === other.id());
   };
 
-
-
   _dimension.addSlice = function (members) {
-    _membersStack.push(members);
+    _stack.push({members : members, filters: []});
     return _dimension;
   };
 
   _dimension.removeLastSlice = function () {
-    _membersStack = _membersStack.slice(0, -1);
+    _stack = _stack.slice(0, -1);
     return _dimension;
   };
 
   _dimension.getLastSlice = function () {
-    return _membersStack[_membersStack.length - 1];
+    return _dimension.getSlice(_stack.length - 1);
+  };
+
+  _dimension.getLastFilters = function () {
+    return _dimension.getFilters(_stack.length - 1);
   };
 
   _dimension.getSlice = function (level) {
-    return _membersStack[level];
+    return _stack[level].members;
+  };
+
+  _dimension.getFilters = function (level) {
+    return _stack[level].filters;
   };
 
   _dimension.isDrillPossible = function () {
@@ -196,8 +205,8 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   * *this* data.dimension.**removeFilter**(*string* element)
   **/
   _dimension.filters = function (filters) {
-    if (!arguments.length) return _filters;
-    _filters = filters;
+    if (!arguments.length) return _dimension.getLastFilters();
+    _stack[_stack.length - 1].filters = filters;
     return _dimension;
   };
 
@@ -206,12 +215,14 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   };
 
   _dimension.addFilter = function (element) {
+    var _filters = _dimension.getLastFilters();
     if (_filters.indexOf(element) < 0)
       _filters.push(element);
     return _dimension;
   };
 
   _dimension.removeFilter = function (element) {
+    var _filters = _dimension.getLastFilters();
     if (_filters.indexOf(element) >= 0)
       _filters.splice(_filters.indexOf(element));
     return _dimension;
@@ -227,7 +238,7 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
     get a crossfilter group, optionally with extra measures (see data.getCrossfilterGroup for more details)
   **/
   _dimension.crossfilterDimension = function () {
-    return analytics.data.getCrossfilterDimension(_dimension, _filters);
+    return analytics.data.getCrossfilterDimension(_dimension, _dimension.getLastFilters());
   };
 
   _dimension.crossfilterGroup = function (extraMeasures) {

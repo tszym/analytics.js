@@ -302,10 +302,10 @@ analytics.state = (function() {
         });
 
         var dimensionObj = analytics.data.dimension(dimension.id, dimensions[dimension.id].caption, dimensions[dimension.id].type, dimension.hierarchy, levels, properties);
-        dimensionObj.filters(dimension.filters);
         dimension.membersStack.forEach(function (members, levelId) {
           dimensionObj.addSlice(analytics.query.getMembersInfos(savedState.schema, savedState.cube, dimension.id, dimension.hierarchy, levelId, members, dimension.properties));
         });
+        dimensionObj.filters(dimension.filters);
 
         _dimensions.push(dimensionObj);
         dimensionsMap[dimensionObj.id()] = dimensionObj;
