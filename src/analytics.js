@@ -59,7 +59,8 @@ var analytics = {
       factSelector : {
         cubes    : 'Cubes available:',
         measures : 'Measures available:'
-      }
+      },
+      hiddenChart : 'This chart is hidden because the dimension shown is aggregated'
     },
     tips : {
       charts : {}

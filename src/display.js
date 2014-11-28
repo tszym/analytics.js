@@ -216,6 +216,8 @@ analytics.display = (function() {
 
   * display.**_displayParamsForm**(*charts.chart* chart) : show the form allowing to change the configuration of the given chart
   * display.**updateChart**(*charts.chart* chart, *Object* options) : modify the given chart with the given options
+  * display.**aggregateDimension**(*data.dimension* dimension, *boolean* aggregate) : aggregate (or deaggregate) a dimension and
+      update the interface accordingly.
   * display.**freezeColorScales**()
   * display.**unfreezeColorScales**()
   **/
@@ -386,6 +388,8 @@ analytics.display = (function() {
     options.measures   = options.measures  .slice(0, nbMes) .filter(function (d) { return typeof d.id != "undefined"; });
 
     // check coherence
+    if (options.dimensions.filter(function (d) { return d.aggregated(); }).length)
+      new PNotify('You cannot use aggregated dimensions');
     if (!analytics.charts[options.type].arePossibleDimensions(options.dimensions))
       new PNotify('Invalid dimensions selected');
     if (!analytics.charts[options.type].arePossibleExtraMeasures(options.measures))
@@ -452,6 +456,15 @@ analytics.display = (function() {
 
   display.unfreezeColorScales = function () {
     _frozenColorScales = false;
+  };
+
+  display.aggregateDimension = function (dimension, aggregate) {
+    dimension.aggregated(aggregate);
+    display.getChartsUsingDimension(dimension).forEach(function (chart) {
+      chart.disabled(aggregate);
+    });
+    analytics.data.loadIfNeeded();
+    display.redraw();
   };
 
   /**
@@ -670,7 +683,7 @@ analytics.display = (function() {
       display.filterAllChartsUsingDimension(dimension);
 
       // update interface
-      display.render();
+      display.redraw();
     }
   };
 
@@ -698,7 +711,7 @@ analytics.display = (function() {
       filterChartsAsDimensionsState();
 
       // update interface
-      display.render();
+      display.redraw();
     }
   };
 

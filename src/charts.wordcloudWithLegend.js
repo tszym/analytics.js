@@ -28,6 +28,12 @@ analytics.charts.wordcloudWithLegend = (function () {
       _chart.element()
         .showLegend(_chart.selector()+'-legend')
         .colorCalculator(function (d) { return d ? _chart.element().colors()(d) : '#ccc'; });
+
+      $(_chart.selector()+' .chart-header').css('cursor', 'pointer');
+      $(_chart.selector()+' .chart-header').click(function () {
+        var dimension = _chart.dimensions()[0];
+        analytics.display.aggregateDimension(dimension, !dimension.aggregated());
+      });
     };
 
     _chart._initContainerSpecific = function () {

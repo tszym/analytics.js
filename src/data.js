@@ -11,6 +11,9 @@ analytics.data = (function() {
   // *analytics.data.measure[]* list of measures loaded
   var _measuresLoaded = [];
 
+  // *analytics.data.dimension[]* list of measures loaded
+  var _dimensionsLoaded = [];
+
   // *crossfilter* crossfilter object containing the dataset
   var _dataCrossfilter;
 
@@ -86,6 +89,7 @@ analytics.data = (function() {
 
     // set dimensions to get
     var dimensions = analytics.state.dimensions();
+    _dimensionsLoaded = [];
     var hierachiesList = [];
 
     for (var index in dimensions) {
@@ -94,6 +98,7 @@ analytics.data = (function() {
       if (!dimension.aggregated()) {
         var members = dimension.getLastSlice();
         var hierarchy = dimension.hierarchy();
+        _dimensionsLoaded.push(dimension);
         hierachiesList.push(hierarchy);
         analytics.query.slice(hierarchy, Object.keys(members));
       }
@@ -130,6 +135,7 @@ analytics.data = (function() {
 
     // set dimensions to get
     var dimensions = analytics.state.dimensions();
+    _dimensionsLoaded = dimensions.slice();
     for (i in dimensions) {
       var dimension = dimensions[i];
       metadata.dimensions[dimension.id()] = {
@@ -154,31 +160,63 @@ analytics.data = (function() {
 
   Load data from the cube according to the last slices & dices and creates a crossfitler dataset with it.
   **/
-  // TODO add a try/catch around this
   _data.load = function() {
-    if (isClientSideAggrPossible()) {
-      return getDataClientAggregates();
-    } else {
-      return getDataServerAggregates();
+    try {
+      if (isClientSideAggrPossible()) {
+        return getDataClientAggregates();
+      } else {
+        return getDataServerAggregates();
+      }
+    }
+    catch(err) {
+      new PNotify({
+        title: 'Error while loading data',
+        type: 'error'
+      });
     }
   };
 
   /**
   ### *crossfilter* data.**loadIfNeeded**()
 
-  Calls `data.load()` if extra measures used in charts are not already loaded. Should be called if you changed
-  extra measures used by charts.
+  Call this function if you added changed extra measures on charts, or aggregated/deaggregated a dimension. It
+  will call `data.load()` if currently loaded data are not sufficient or not optimal regarding which crossfilter
+  version we should use (client or server).
   **/
   _data.loadIfNeeded = function() {
+
+    var i;
+
+    // if we need to load a new measure
     var measuresLoadedIds = _measuresLoaded.map(function (m) { return m.id(); });
     var measuresToLoad = analytics.display.getExtraMeasuresUsed();
 
-    for (var i in measuresToLoad) {
-      // if we need to reload, do it and exit
+    for (i in measuresToLoad) {
       if (measuresLoadedIds.indexOf(measuresToLoad[i].id()) < 0) {
         _data.load();
         return true;
       }
+    }
+
+    // if we need to load a new dimension
+    var dimensionsLoadedIds = _dimensionsLoaded.map(function (d) { return d.id(); });
+    var dimensionsToLoad = analytics.state.dimensions().filter(function (d) { return !d.aggregated(); });
+
+    for (i in dimensionsToLoad) {
+      if (dimensionsLoadedIds.indexOf(dimensionsToLoad[i].id()) < 0) {
+        _data.load();
+        return true;
+      }
+    }
+
+    // if we can switch from server to client (we aggegated enough)
+    var sizeOld = _dimensionsLoaded.reduce(function (old, dimension) { return old * Object.keys(dimension.getLastSlice()).length; }, 1);
+    var clientOld = isClientSideAggrPossible(sizeOld);
+    var clientNew = isClientSideAggrPossible();
+
+    if (!clientOld && clientNew) {
+      _data.load();
+      return true;
     }
 
     return false;

@@ -73,7 +73,10 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   };
 
   _dimension.currentLevel = function() {
-    return _stack.length - 1;
+    if (!_aggregated)
+      return _stack.length - 1;
+    else
+      return 0;
   };
 
   _dimension.maxLevel = function() {
@@ -97,6 +100,27 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   _dimension.aggregated = function (aggregate) {
     if (!arguments.length) return _aggregated;
     _aggregated = aggregate;
+
+    if (_aggregated) {
+      _dimension.crossfilterDimension().filterAll();
+    }
+    else {
+      var filters = _dimension.filters();
+      if (filters.length > 0) {
+        _dimension.crossfilterDimension().filterFunction(function (d) {
+          for(var i = 0; i < filters.length; i++) {
+            if (filters[i] == d)
+              return true;
+          }
+          return false;
+        });
+      }
+      else {
+        _dimension.crossfilterDimension().filterAll();
+      }
+    }
+
+    return _dimension;
   };
 
 

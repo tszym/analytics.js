@@ -141,6 +141,29 @@ analytics.charts.chart = (function () {
       return _player;
     };
 
+    var _disabled = false;
+
+    _chart.disabled = function (disabled) {
+      if (!arguments.length) return _disabled;
+
+      // disable
+      if (disabled && !_disabled) {
+        if (_chart.element())
+          dc.deregisterChart(_chart.element());
+        $(_selector).addClass('chart-hidden');
+      }
+
+      // enable
+      else if (!disabled && _disabled) {
+        if (_chart.element())
+          dc.registerChart(_chart.element());
+        $(_selector).removeClass('chart-hidden');
+      }
+
+      _disabled = disabled;
+      return _chart;
+    };
+
     // display main functions
     _chart.build = function () {
       if (!_chart.element()) {
@@ -148,32 +171,42 @@ analytics.charts.chart = (function () {
                 initResize();       // jshint ignore:line
         _chart._initContainerSpecific();
                 initHeader();       // jshint ignore:line
-        _chart._createDcElement();
-                initChartCommon();  // jshint ignore:line
-        _chart._initChartSpecific();
+        if (!_disabled) {
+          _chart._createDcElement();
+                  initChartCommon();  // jshint ignore:line
+          _chart._initChartSpecific();
+        }
       }
 
       updateHeader();
-      updateChartCommon();
-      _chart._updateChartSpecific();
+      _chart._updateHeaderSpecific();
+      if (!_disabled) {
+        updateChartCommon();
+        _chart._updateChartSpecific();
+      }
       return _chart;
     };
 
     _chart.render = function() {
-      _chart.build().element().render();
+      _chart.build();
+      if (!_disabled)
+        _chart.element().render();
       return _chart;
     };
 
     _chart.redraw = function() {
       if (!_chart.element())
         return _chart.render();
-      _chart.build().element().redraw();
+      _chart.build();
+      if (!_disabled)
+        _chart.element().redraw();
       return _chart;
     };
 
     // display sub-functions
     function initContainer () {
-      $(_selector).html('<div class="chart-header"></div><div class="chart-container"></div>');
+      $(_selector).addClass("chart-"+_chart.type());
+      $(_selector).html('<div class="chart-header"></div><div class="chart-text">'+analytics.csts.txts.hiddenChart+'</div><div class="chart-container"></div>');
     }
 
     function initResize() {
@@ -191,7 +224,7 @@ analytics.charts.chart = (function () {
     };
 
     _chart.updateColors = function () {
-      if (typeof _chart.element().colorDomain == 'function') {
+      if (typeof _chart.element().colorDomain == 'function' && !_disabled) {
         _chart.element()
           .colors(d3.scale.quantize().range(_dimensions[0].colors()))
           .colorDomain(_chart._niceDomain(_dimensions[0].crossfilterGroup(_extraMeasures), analytics.state.measure().id()));
@@ -202,6 +235,7 @@ analytics.charts.chart = (function () {
     _chart.delete = function () {
       dc.deregisterChart(_chart.element());
       $(_selector).empty();
+      $(_selector).removeClass('chart-hidden chart-'+_chart.type());
     };
 
     /**
@@ -213,13 +247,15 @@ analytics.charts.chart = (function () {
     * charts.chart.**_createDcElement**(): called to create the dc.js chart
     * charts.chart.**_initContainerSpecific**() : used to initialize elements aside from the dc.js chart
     * charts.chart.**_initChartSpecific**(): used to initialize the chart
-    * charts.chart.**_updateChartSpecific**() : called when the chart is updated
+    * charts.chart.**_updateHeaderSpecific**() : called when the chart is created or updated
+    * charts.chart.**_updateChartSpecific**() : called when the chart is created or updated
 
     **/
     _chart._resizeSpecific        = function () {};
     _chart._createDcElement       = function () {};
     _chart._initContainerSpecific = function () {};
     _chart._initChartSpecific     = function () {};
+    _chart._updateHeaderSpecific  = function () {};
     _chart._updateChartSpecific   = function () {};
 
     /**
