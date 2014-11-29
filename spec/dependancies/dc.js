@@ -1950,16 +1950,25 @@ dc.colorMixin = function (_chart) {
 
         var tdColor = _colorRow.selectAll("td").data(_colors.range());
 
+        var min = d3.min(_chart.data(), function (e) { return _chart.valueAccessor()(e); });
+        var max = d3.max(_chart.data(), function (e) { return _chart.valueAccessor()(e); });
+        var extent = max - min;
+
         // Displays the color row
         tdColor.enter().append("td");
         tdColor.exit().remove();
         tdColor
             .html("&nbsp;")
             .attr("style",function(d){
-                return "width: "+100/length+"%; background-color: "+d;
+                var begin = !isNaN(_colors.invertExtent(d)[0]) ? _colors.invertExtent(d)[0] : min;
+                var end   = !isNaN(_colors.invertExtent(d)[1]) ? _colors.invertExtent(d)[1] : max;
+                var currentExtent = end - begin;
+                return "width: "+100*(currentExtent/extent)+"%; background-color: "+d;
             })
-            .attr("title",function(d){
-                return _formatLegendNumber(_colors.invertExtent(d)[0])+"-"+_formatLegendNumber(_colors.invertExtent(d)[1]);
+            .attr("title",function(d, i){
+                var begin = !isNaN(_colors.invertExtent(d)[0]) ? _colors.invertExtent(d)[0] : min;
+                var end   = !isNaN(_colors.invertExtent(d)[1]) ? _colors.invertExtent(d)[1] : max;
+                return _formatLegendNumber(begin)+"-"+_formatLegendNumber(end);
             });
 
         // Displays the caption row
@@ -1969,7 +1978,7 @@ dc.colorMixin = function (_chart) {
         tdCaption.exit().remove();
         tdCaption
             .text(function(d){
-                return _formatLegendNumber(_colors.invertExtent(d)[0]);
+                return _formatLegendNumber(!isNaN(_colors.invertExtent(d)[0]) ? _colors.invertExtent(d)[0] : min);
             });
 
 
@@ -5360,7 +5369,7 @@ dc.dataTable = function (parent, chartGroup) {
 
     function nestEntries() {
         var entries = _chart.dimension().top(_size);
-        
+
         return d3.nest()
             .key(_chart.group())
             .sortKeys(_order)
