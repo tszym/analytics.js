@@ -37,7 +37,11 @@ analytics.charts.wordcloudWithLegend = (function () {
     };
 
     _chart._initContainerSpecific = function () {
-      $(_chart.selector()).append('<div class="wordcloud-legend"></div>');
+      $(_chart.selector()).append('<div class="wordcloud-legend"></div><div class="btn-dimparams-container"><span class="btn-dimparams btn btn-xs btn-default"><i class="fa fa-nomargin fa-cog"></i></span></div>');
+
+      $(_chart.selector() + ' .btn-dimparams').click(function() {
+        analytics.display._displayDimensionParamsForm(_chart.dimensions()[0]);
+      });
     };
 
     _chart._updateHeaderSpecific = function () {

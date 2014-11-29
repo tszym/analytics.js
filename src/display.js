@@ -218,6 +218,8 @@ analytics.display = (function() {
   * display.**updateChart**(*charts.chart* chart, *Object* options) : modify the given chart with the given options
   * display.**aggregateDimension**(*data.dimension* dimension, *boolean* aggregate) : aggregate (or deaggregate) a dimension and
       update the interface accordingly.
+  * display.**_displayDimensionParamsForm**(*data.dimension* dimension) : show the form allowing to change the configuration of the given dimension
+  * display.**updateDimension(*data.dimension* dimension, *Object* options) : modify the given dimension with the given options
   * display.**freezeColorScales**()
   * display.**unfreezeColorScales**()
   **/
@@ -466,6 +468,70 @@ analytics.display = (function() {
     analytics.data.loadIfNeeded();
     display.redraw();
   };
+
+  display._displayDimensionParamsForm = function (dimension) {
+
+    function generateHTML(color) {
+      var palette = colorbrewer[color][Object.keys(colorbrewer[color]).pop()];
+      var HTML = palette.map(function(color) { return '<span style="background: '+color+'"></span>'; }).reduce(function (a, b) { return a + b; });
+      return '<a class="color-palette" title="'+color+'">'+HTML+'</a>';
+    }
+
+    function setColor(color) {
+      $('#dimparam-color-button').html(generateHTML(color)+' <span class="caret"></span>');
+      $('#dimparam-color').val(color);
+      var min = Object.keys(colorbrewer[color]).shift();
+      var max = Object.keys(colorbrewer[color]).pop();
+      $('#dimparam-colors-nb').attr('min', min);
+      $('#dimparam-colors-nb').attr('max', max);
+      var nb = Math.min(Math.max(min, $('#dimparam-colors-nb').val()), max);
+      $('#dimparam-colors-nb').val(nb);
+    }
+
+    // init list of available palettes
+    if ($('#dimparam-color-dropdown li').length === 0) {
+      analytics.csts.palettes.forEach(function(color) {
+        $('#dimparam-color-dropdown').append('<li>'+generateHTML(color)+'</li>');
+      });
+
+      $('#dimparam-color-dropdown li a').click(function() {
+        setColor($(this).attr('title'));
+      });
+    }
+
+    // preset fields as current dimension value
+    setColor(dimension.colorPalette());
+    $('#dimparam-colors-nb').val(dimension.nbBins());
+    $('#dimparam-scale').val(dimension.scaleType());
+
+    // set callback for save
+    $('#dimparams-set').unbind('click').click(function() {
+      $('#dimparams').modal('hide');
+
+      var color = $('#dimparam-color').val();
+      var min = Object.keys(colorbrewer[color]).shift();
+      var max = Object.keys(colorbrewer[color]).pop();
+      var nb = Math.min(Math.max(min, $('#dimparam-colors-nb').val()), max);
+
+      var options = {
+        palette : color,
+        number  : nb,
+        scale   : $('#dimparam-scale').val(),
+      };
+      updateDimension(dimension, options);
+    });
+
+    // display modal
+    $('#dimparams').modal('show');
+  };
+
+  function updateDimension(dimension, options) {
+    dimension.colorPalette(options.palette);
+    dimension.nbBins(options.number);
+    dimension.scaleType(options.scale);
+
+    display.redraw();
+  }
 
   /**
   ### Charts' filters
