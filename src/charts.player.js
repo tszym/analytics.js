@@ -10,7 +10,9 @@ Creates a player object for the given chart.
 analytics.charts.player = function (chart) {
 
   var _dimension = chart.dimensions()[0];
-  var _members = Object.keys(_dimension.getLastSlice()).sort();
+  var _members = chart.element().hasFilter() ? chart.element().filters() : Object.keys(_dimension.getLastSlice());
+  _members.sort();
+
   var _currentMember = 0;
   var _timeout = chart.options().playerTimeout;
   var _running = true;

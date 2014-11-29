@@ -390,6 +390,7 @@ analytics.charts.chart = (function () {
 
               _player = undefined;
             });
+            _chart.element().filterAll();
             _player.start();
           } else if (_player.running()) {
              _player.pause();
