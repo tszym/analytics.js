@@ -523,8 +523,9 @@ analytics.display = (function() {
       }
     }
 
+    display.charts().forEach(function (chart) { chart.updateTitle(); });
     if (!_frozenColorScales) {
-      display.charts().map(function (chart) { chart.updateColors(); });
+      display.charts().forEach(function (chart) { chart.updateColors(); });
     }
   };
 

@@ -253,13 +253,14 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   };
 
   /**
-  ### Crossfilter objects
+  ### Data & crossfilter objects
 
-  You can get crossfilter objects related to this dimension using the following getters:
+  You can get data & crossfilter objects related to this dimension using the following getters:
 
   * *crossfilter.dimension* data.dimension.**crossfilterDimension**()
   * *crossfilter.group* data.dimension.**crossfilterGroup**([*data.measure[]* extraMeasures]) :
     get a crossfilter group, optionally with extra measures (see data.getCrossfilterGroup for more details)
+  * *float* data.dimension.**getTotal**() : returns the total for the selected members of the dimension
   **/
   _dimension.crossfilterDimension = function () {
     return analytics.data.getCrossfilterDimension(_dimension, _dimension.getLastFilters());
@@ -267,6 +268,17 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
 
   _dimension.crossfilterGroup = function (extraMeasures) {
     return analytics.data.getCrossfilterGroup(_dimension, extraMeasures);
+  };
+
+  _dimension.getTotal = function () {
+    function hasFilter(el) {
+      return (_dimension.filters().length === 0 || _dimension.filters().indexOf(el) >= 0);
+    }
+
+    return _dimension.crossfilterGroup().all()
+          .filter(function (d) { return hasFilter(d.key); })
+          .map   (function (d) { return d.value; })
+          .reduce(function (a, b) { return a + b; }, 0.0);
   };
 
   return _dimension;

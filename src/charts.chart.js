@@ -431,6 +431,11 @@ analytics.charts.chart = (function () {
 
     function displayTitle () {
       if (_chart.params().displayTitle) {
+
+        var total = _dimensions[0].getTotal();
+        var totalSpan = $('<span class="chart-total" data-toggle="tooltip" data-placement="bottom" title="'+d3.format('.6s  s')(total)+'">'+
+          d3.format('.3s')(total) + ' </span>').tooltip({'container': 'body'});
+
         var measureTitle;
         var measureDescription = analytics.state.measure().description();
         var measureCaption = analytics.state.measure().caption();
@@ -457,12 +462,21 @@ analytics.charts.chart = (function () {
           dimensionTitle = dimensionCaption;
         }
 
-        $(_selector + ' .chart-title').html(analytics.state.cube().caption() + ' &bull; ')
-            .append(dimensionTitle).append(' &bull; ')
-            .append(_dimensions[0].levels()[_dimensions[0].currentLevel()] + ' &bull; ')
-            .append(measureTitle);
+        $(_selector + ' .chart-title').empty()
+            .append(measureTitle)                                          .append(' &bull; ')
+            .append(_dimensions[0].levels()[_dimensions[0].currentLevel()]).append(' &bull; ')
+            .append(dimensionTitle)                                        .append(' &bull; ')
+            .append(analytics.state.cube().caption())                      .append(' &bull; ')
+            .append('Total: ').append(totalSpan);
       }
     }
+
+    _chart.updateTitle = function () {
+      if (!_disabled) {
+        var total = _dimensions[0].getTotal();
+        $(_selector+" .chart-total").attr("title", d3.format(".6s")(total)).html(d3.format(".3s")(total));
+      }
+    };
 
     function displayParams () {
       if (_chart.params().displayParams) {
