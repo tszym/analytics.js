@@ -321,7 +321,7 @@ analytics.display = (function() {
     typeSelect.val(chart.type());
     sortSelect.val(options.sort);
     playerTimeoutSelect.val(options.playerTimeout);
-    labelChoiceSelect.prop("checked", options.labels);
+    labelChoiceSelect.prop("checked", options.labels === false ? "" : "checked");
     dimensionsSelects.each(function(i, el) {
       var dimension = chart.dimensions()[i];
       if (dimension)
