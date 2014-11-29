@@ -31,6 +31,7 @@ analytics.charts.bubble = (function () {
 
         .elasticY(true)
         .elasticX(true)
+        .elasticRadius(true)
 
         .renderHorizontalGridLines(true)
         .renderVerticalGridLines(true)
