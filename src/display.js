@@ -158,11 +158,18 @@ analytics.display = (function() {
   }
 
   function replaceChart(chart, newType) {
+    // get old infos & delete old chart
+    var options = chart.options();
     var pos = getChartPosition(chart);
     var selector = chart.selector();
     chart.delete();
+
+    // create new chart and restore options & position
     chart = analytics.charts[newType](selector);
+    for (var option in options)
+      chart.setOption(option, options[option]);
     _charts[pos.i][pos.j] = chart;
+
     return chart;
   }
 
