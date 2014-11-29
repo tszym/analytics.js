@@ -427,12 +427,18 @@ analytics.display = (function() {
     options.measures   = options.measures  .slice(0, nbMes) .filter(function (d) { return typeof d.id != "undefined"; });
 
     // check coherence
-    if (options.dimensions.filter(function (d) { return d.aggregated(); }).length)
+    if (options.dimensions.filter(function (d) { return d.aggregated(); }).length) {
       new PNotify('You cannot use aggregated dimensions');
-    if (!analytics.charts[options.type].arePossibleDimensions(options.dimensions))
+      return;
+    }
+    if (!analytics.charts[options.type].arePossibleDimensions(options.dimensions)) {
       new PNotify('Invalid dimensions selected');
-    if (!analytics.charts[options.type].arePossibleExtraMeasures(options.measures))
+      return;
+    }
+    if (!analytics.charts[options.type].arePossibleExtraMeasures(options.measures)) {
       new PNotify('Invalid axes selected');
+      return;
+    }
 
     // chart type change = new chart
     if (chart.type() != options.type) {
