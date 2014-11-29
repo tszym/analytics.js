@@ -162,6 +162,7 @@
     </div>
     <div class="modal-footer">
       <a href="#" class="btn btn-default" data-dismiss="modal">Cancel</a>
+      <a href="#" class="btn btn-danger" id="chartparams-delete">Remove chart</a>
       <a href="#" class="btn btn-primary" id="chartparams-set">Update chart</a>
     </div>
 
@@ -217,6 +218,7 @@
 
     <div id="toolbox">
       <div class="pull-right">
+        <a id="addchart" class="btn btn-default btn-md" href="#"><i class="fa fa-plus"></i> Add a chart</a>
         <a id="reset" class="btn btn-default btn-md" href="#"><i class="fa fa-refresh"></i> Reset Filters</a>
         <a id="resize" class="btn btn-default"><i class="fa fa-arrows-v fa-nomargin"></i></a>
         <a href="#modal_analysis" class="btn btn-primary" data-toggle="modal" disabled="disabled">Save Analysis</a>
@@ -226,8 +228,8 @@
 
     <div id="columns">
       <div class="chart-columns" id="left-pane"></div>
-      <div class="chart-columns" id="middle-pane"></div>
-      <div class="chart-columns" id="right-pane"></div>
+      <div class="chart-columns chart-columns-sortable" id="middle-pane"></div>
+      <div class="chart-columns chart-columns-sortable" id="right-pane"></div>
     </div>
   </div>
 
@@ -244,20 +246,12 @@
   <script src="/spec/dependancies/pnotify.custom.min.js" type="application/javascript"></script>
   <script src="/spec/dependancies/jquery.resizableColumns.js" type="application/javascript"></script>
   <script src="/spec/dependancies/bootstrap.min.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/bootbox.min.js" type="application/javascript"></script>
   <script src="/spec/helpers/cube.js" type="application/javascript"></script>
   <script src="js/fixtures.js" type="application/javascript"></script>
   <script src="js/analytics.test.js" type="application/javascript" charset="utf-8"></script>
   <script>
-
-  /*analytics.state({"schema":"Olap","cube":"C","measure":"E","columnWidths":{"left-pane":25.04,"middle-pane":50,"right-pane":24.96},"dimensions":[{"id":"[Zone]","hierarchy":"Z1","filters":[],"properties":["Geom"],"membersStack":[["BE","DE","NL","LU","UK"]]},{"id":"[Time]","hierarchy":"T1","filters":[],"properties":[],"membersStack":[["2010","2011","2012","2013"]]},{"id":"[Product]","hierarchy":"P1","filters":[],"properties":[],"membersStack":[["F","NC"]]}],"charts":[[],[{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]},{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]},{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]}],[{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]},{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]}]]});*/
-  analytics.init(generateAPI([c]));
-
-  Save.init('#modal_analysis', '#title-save', '#abstract-save');
-  $("#permission_form").submit(function() { return false; });
-
-  $("#analysis_submit").click(function () {
-    Save.save(this, Display.getState());
-  });
+  analytics.init(generateAPI([c, c2]));
   </script>
 </body>
 </html>

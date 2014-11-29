@@ -95,6 +95,10 @@ html, body {
 	background: #DAECF2;
 }
 
+.chart-columns-sortable .chart-header {
+	cursor: move;
+}
+
 div.dc-chart {
 	float: none;
 	position: relative;
@@ -118,7 +122,7 @@ div.dc-chart {
 	font-size: 110%;
 }
 
-.chart-hidden.chart-wordcloudWithLegend .chart-text {
+.chart-hidden.chart-wordcloudWithLegend .chart-text, .chart-hidden .chart-container, .chart-hidden .wordcloud-legend, .chart-hidden .btn-dimparams {
 	display: none;
 }
 
@@ -126,12 +130,8 @@ div.dc-chart {
 	margin-bottom: 5px;
 }
 
-.chart-hidden .chart-container {
-	display: none;
-}
-
-.chart-hidden .wordcloud-legend {
-	display: none;
+.chart-pie .chart-container, .chart-table .chart-container {
+	padding: 8px;
 }
 
 .btn-dimparams-container {
