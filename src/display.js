@@ -416,6 +416,7 @@ analytics.display = (function() {
 
   function updateChart (chart, options) {
 
+    var doFilter = false;
     var doRender = false;
     var doRedraw = false;
     var loadData = false;
@@ -450,6 +451,7 @@ analytics.display = (function() {
     if (!arraysEquals(options.dimensions, chart.dimensions())) {
       chart.dimensions(options.dimensions);
       doRedraw = true;
+      doFilter = true;
     }
 
     // new measures
@@ -487,10 +489,16 @@ analytics.display = (function() {
       if (isLoaded)
         analytics.display.redraw();
     }
-    else if (doRender)
+    else if (doRender) {
       chart.render();
-    else if (doRedraw)
+    }
+    else if (doRedraw) {
       chart.redraw();
+    }
+    if (doFilter) {
+      filterChartAsDimensionState(chart);
+      chart.redraw();
+    }
   }
 
   var _frozenColorScales = false;
@@ -600,6 +608,13 @@ analytics.display = (function() {
       charts[i].element().filterAll();
     }
   };
+
+  function filterChartAsDimensionState (chart) {
+    chart.dimensions()[0].filters().forEach(function (filter) {
+      if (!chart.element().hasFilter(filter))
+        chart.element().filter(filter);
+    });
+  }
 
   function filterChartsAsDimensionsState () {
 
