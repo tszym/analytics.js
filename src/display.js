@@ -496,6 +496,7 @@ analytics.display = (function() {
       chart.redraw();
     }
     if (doFilter) {
+      chart.element().filterAll();
       filterChartAsDimensionState(chart);
       chart.redraw();
     }
@@ -748,7 +749,6 @@ analytics.display = (function() {
   * display.**showFactSelector**(*Object* cubesAndMeasures, *data.cube* cube, *data.measure* measure, *function* callback)
   * display.**resize**() : resize the charts
   * display.**rebuild**() : rebuild the charts
-  * display.**initRender**() : render the charts for the first time (will ask the charts to load the filters of the dimensions)
   * display.**render**() : render the charts
   * display.**redraw**() : redraw the charts
   **/
@@ -771,13 +771,8 @@ analytics.display = (function() {
     for (var i in charts) {
       charts[i].build();
     }
-  }
-
-  display.initRender = function () {
-    rebuild();
     filterChartsAsDimensionsState();
-    dc.renderAll();
-  };
+  }
 
   display.render = function () {
     rebuild();
@@ -846,8 +841,6 @@ analytics.display = (function() {
 
       // roll up state
       analytics.state.rollUp(dimension, nbLevels);
-
-      filterChartsAsDimensionsState();
 
       // update interface
       display.redraw();

@@ -90,7 +90,7 @@ analytics.init = function (queryAPI, state) {
   analytics.state.initMeasure();
   analytics.state.initDimensions();
   analytics.data.load();
-  analytics.display.initRender();
+  analytics.display.render();
 };
 
 // importTest "analytics-test-accessors.js"
