@@ -134,6 +134,27 @@ div.dc-chart {
 	display: none;
 }
 
+.btn-dimparams-container {
+	display: table-cell;
+	padding: 0 5px;
+	vertical-align: top;
+}
+
+.color-palette {
+	cursor: pointer;
+}
+
+.color-palette span {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+}
+
+.wordcloud-legend {
+	display: table-cell;
+	width: 100%;
+}
+
 .chart-hidden #zoom {
 	display: none;
 }

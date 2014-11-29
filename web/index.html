@@ -161,12 +161,60 @@
 
     </div>
     <div class="modal-footer">
-      <a href="#" class="btn btn-default" data-dismiss="modal">Annuler</a>
+      <a href="#" class="btn btn-default" data-dismiss="modal">Cancel</a>
       <a href="#" class="btn btn-primary" id="chartparams-set">Update chart</a>
     </div>
 
   </div>
 </div>
+
+<div class="modal fade" id="dimparams" style="display:none;">
+  <div class="modal-dialog modal-content">
+    <div class="modal-header">
+      <a class="close" data-dismiss="modal">×</a>
+      <h3>Dimension parameters</h3>
+    </div>
+    <div class="modal-body modal-body form-horizontal">
+
+      <div class="form-group">
+        <label for="chartparam-sort" class="col-sm-3 control-label">Color scale:</label>
+        <div class="col-sm-9">
+          <button class="btn dropdown-toggle" id="dimparam-color-button" data-toggle="dropdown"></button>
+            <ul class="dropdown-menu" id="dimparam-color-dropdown">
+            </ul>
+            <input type="hidden" id="dimparam-color" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="dimparam-colors-nb" class="col-sm-3 control-label">Number of bins:</label>
+        <div class="col-sm-9">
+          <input type="number" min="3" max="9" id="dimparam-colors-nb" value="3" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="dimparam-scale" class="col-sm-3 control-label">Scale type:</label>
+        <div class="col-sm-9">
+          <select id="dimparam-scale">
+            <option value="quantize">Linear</option>
+            <!--<option value="linear">Linear gradient</option>-->
+            <option value="quantile">Quantile</option>
+            <option value="natural">Jenks Natural Breaks</option>
+            <!--<option value="log">Log</option>-->
+          </select>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn btn-default" data-dismiss="modal">Cancel</a>
+      <a href="#" class="btn btn-primary" id="dimparams-set">Update</a>
+    </div>
+
+  </div>
+</div>
+
     <div id="toolbox">
       <div class="pull-right">
         <a id="reset" class="btn btn-default btn-md" href="#"><i class="fa fa-refresh"></i> Reset Filters</a>
@@ -185,7 +233,9 @@
 
   <script src="/spec/dependancies/_jquery-2.1.1.min.js" type="application/javascript"></script>
   <script src="/spec/dependancies/jquery-ui.min.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/simple_statistics.js" type="application/javascript"></script>
   <script src="/spec/dependancies/d3.v3.min.js" type="application/javascript"></script>
+  <script src="/spec/dependancies/colorbrewer.v1.min.js" type="application/javascript"></script>
   <script src="/spec/dependancies/crossfilter.js" type="application/javascript"></script>
   <script src="/spec/dependancies/crossfilter-server.js" type="application/javascript"></script>
   <script src="/spec/dependancies/dc.js" type="application/javascript"></script>
@@ -198,6 +248,7 @@
   <script src="js/fixtures.js" type="application/javascript"></script>
   <script src="js/analytics.test.js" type="application/javascript" charset="utf-8"></script>
   <script>
+
   /*analytics.state({"schema":"Olap","cube":"C","measure":"E","columnWidths":{"left-pane":25.04,"middle-pane":50,"right-pane":24.96},"dimensions":[{"id":"[Zone]","hierarchy":"Z1","filters":[],"properties":["Geom"],"membersStack":[["BE","DE","NL","LU","UK"]]},{"id":"[Time]","hierarchy":"T1","filters":[],"properties":[],"membersStack":[["2010","2011","2012","2013"]]},{"id":"[Product]","hierarchy":"P1","filters":[],"properties":[],"membersStack":[["F","NC"]]}],"charts":[[],[{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]},{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]},{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]}],[{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]},{"type":"pie","options":{"sort":"valueasc","labels":null,"playerTimeout":300,"height":300,"heightReference":"px"},"dimensions":["[Zone]"],"extraMeasures":[]}]]});*/
   analytics.init(generateAPI([c]));
 
