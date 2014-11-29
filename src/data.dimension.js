@@ -19,7 +19,9 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
 
   var _stack = []; // stack of all slice done on this hierarchy
 
-  var _colors = ["#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"];
+  var _scaleType    = 'quantile';
+  var _colorPalette = analytics.csts.palettes[analytics.data.dimension.nextI++ % analytics.csts.palettes.length];
+  var _nbBins       = 4;
 
   _dimension._crossfilterDimension = null; // crossfilter element for this dimension
   _dimension._crossfilterGroups = {}; // crossfilter element for the group of this dimension
@@ -40,7 +42,6 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   * *string* data.dimension.**type**()
   * *data.property[]* data.dimension.**properties**() : list of properties to load with members
   * *data.property* data.dimension.**getGeoProperty**() : return null or the geometrical property
-  * *mixed* data.dimension.**colors**(colors) : get of set a color palette for this dimension
   * *mixed* data.dimension.**aggregated**(*boolean* aggregate) : getter / setter indicating if we need to aggregate the dimension or not
   * *boolean* data.dimension.**equals**(*data.dimension* other)
   **/
@@ -89,12 +90,6 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
         return _properties[i];
     }
     return null;
-  };
-
-  _dimension.colors = function (colors) {
-    if (!arguments.length) return _colors;
-    _colors = colors;
-    return _dimension;
   };
 
   _dimension.aggregated = function (aggregate) {
@@ -253,6 +248,71 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   };
 
   /**
+  ### Scale
+
+  To handle the color scale of the dimension, the following functions are available:
+
+  * *string[]* data.dimension.**colors**() : get the list of color of the bins (CSS HEX code in string) for this dimension
+  * *mixed* data.dimension.**scaleType**(*string* type) : get or set the type of scale (`quantize` for a linear quantization,
+      `quantile` for quantiles, `natural` for Jenks Natural Breaks).
+  * *mixed* data.dimension.**colorPalette**(*string* colorPalette) : get or set the name of the [colorbewer](colorbrewer2.org)
+      palette to use for this dimension.
+  * *nbBins* data.dimension.**nbbins**(*int* nb) : get or set the number of bins of the color scale.
+  * *d3.scale* data.dimension.**scale**() : get the d3 scale of the dimension
+  **/
+  _dimension.colors = function () {
+    return colorbrewer[_colorPalette][_nbBins];
+  };
+
+  _dimension.scaleType = function (scaleType) {
+    if (!arguments.length) return _scaleType;
+    _scaleType = scaleType;
+    return _dimension;
+  };
+
+  _dimension.colorPalette = function (colorPalette) {
+    if (!arguments.length) return _colorPalette;
+    _colorPalette = colorPalette;
+    return _dimension;
+  };
+
+  _dimension.nbBins = function (nbBins) {
+    if (!arguments.length) return _nbBins;
+    _nbBins = nbBins;
+    return _dimension;
+  };
+
+  _dimension.scale = function () {
+
+    // Jenks natural breaks will fail if we have equal or less data than classes
+    if (_scaleType == 'natural' && _dimension.crossfilterGroup().all().length <= _nbBins)
+      _scaleType = 'quantize';
+
+    switch (_scaleType) {
+
+      case 'natural':
+      return d3.scale.threshold()
+        .domain(ss.jenks(_dimension.crossfilterGroup().all().map(function(d) { return d.value; }), _nbBins).splice(1, _nbBins - 1))
+        .range(_dimension.colors());
+
+      case 'quantize':
+
+      var min = _dimension.crossfilterGroup().order(function (d) { return -d; }).top(1)[0].value;
+      var max = _dimension.crossfilterGroup().order(function (d) { return  d; }).top(1)[0].value;
+
+      return d3.scale.quantize()
+        .domain([min, max])
+        .range(_dimension.colors());
+
+      case 'quantile':
+
+      return d3.scale.quantile()
+        .domain(_dimension.crossfilterGroup().all().map(function(d) { return d.value; }))
+        .range(_dimension.colors());
+    }
+  };
+
+  /**
   ### Data & crossfilter objects
 
   You can get data & crossfilter objects related to this dimension using the following getters:
@@ -283,3 +343,5 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
 
   return _dimension;
 };
+
+analytics.data.dimension.nextI = 0;

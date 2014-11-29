@@ -224,10 +224,9 @@ analytics.charts.chart = (function () {
     };
 
     _chart.updateColors = function () {
-      if (typeof _chart.element().colorDomain == 'function' && !_disabled) {
+      if (typeof _chart.element().colors == 'function' && !_disabled) {
         _chart.element()
-          .colors(d3.scale.quantize().range(_dimensions[0].colors()))
-          .colorDomain(_chart._niceDomain(_dimensions[0].crossfilterGroup(_extraMeasures), analytics.state.measure().id()));
+          .colors(_dimensions[0].scale());
       }
       return _chart;
     };

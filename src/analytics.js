@@ -46,6 +46,7 @@ var analytics = {
       resize           : '#resize',
       zoom             : 'zoom'
     },
+    palettes : ["YlGn", "GnBu", "BuPu", "RdPu", "PuRd", "OrRd", "YlOrRd", "YlOrBr", "PuOr", "BrBG", "PRGn", "PiYG", "RdBu", "RdGy", "RdYlBu", "RdYlGn"],
     txts : {
       charts : {
         map : 'Choropleth map',
