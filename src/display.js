@@ -106,6 +106,8 @@ analytics.display = (function() {
   To create charts, the following functions are available:
 
   * *charts.chart* display.**insertChart**(*charts.chart* chart, *int* column, *int* offset) : insert a chart on the interface, at the given position
+  * display.**addChart**() : add a new chart on the interface
+  * display.**deleteChart**(*charts.chart* chart) : remove a chart from the interface
   * display.**replaceChart**(*charts.chart* chart, *string* newType) : replace a chart with a new chart of the given `type`
   * display.**emptyChartsColumn**(*int* i) : remove all charts of the *i*-th column
   * display.**initCharts**() : initialize the charts default layout (1 map, 1 timeline, 1 bar, 1 pie, 1 table)
@@ -113,6 +115,7 @@ analytics.display = (function() {
       recreate charts from a given saved layout, using maps of dimensions and measures
   * display.**createWordClouds**(*data.dimension[]* dimensions) : create one wordcloud for each dimension of the dimensions given, and insert it in the first column
   * display.**assignDimensions**(*data.dimension[]* dimensions, *data.dimension* geoDimension, *data.dimension* timeDimension) : assign the dimensions to the charts
+  * display.**updateLayout**() : update the stored layout (returned by  `chartsInLayout()`) according to the real layout of the interface
   **/
   function insertChart(chart, column, offset) {
 
@@ -138,6 +141,20 @@ analytics.display = (function() {
     // insert at offset position
     else
       $(columnCharts[offset]).before(container);
+  }
+
+  function addChart() {
+    var chart = analytics.charts.wordcloud("#chart-" + _nextChartId++);
+    insertChart(chart, 1, 0);
+    display._displayParamsForm(chart);
+  }
+
+  function deleteChart(chart) {
+    var pos = getChartPosition(chart);
+    var selector = chart.selector();
+    $(selector).remove();
+    chart.delete();
+    _charts[pos.i].splice(pos.j, 1);
   }
 
   function replaceChart(chart, newType) {
@@ -208,6 +225,21 @@ analytics.display = (function() {
         chart.dimensions([geoDimension]);
     }
   };
+
+  function updateLayout() {
+    var chartsMap = {};
+    display.charts().forEach(function (chart) {
+      chartsMap[chart.selectorName()] = chart;
+    });
+
+    _charts = [[], [], []];
+
+    for (var i = 0; i < 3; i++) {
+      var chartDivs = getColumn(i).children("div").each(function(j) {
+        _charts[i][j] = chartsMap[$(this).attr("id")];
+      });
+    }
+  }
 
   /**
   ### Charts' update
@@ -371,6 +403,11 @@ analytics.display = (function() {
       });
 
       updateChart(chart, options);
+    });
+
+    $('#chartparams-delete').unbind('click').click(function() {
+      $('#chartparams').modal('hide');
+      deleteChart(chart);
     });
 
     // show modal
@@ -632,6 +669,11 @@ analytics.display = (function() {
 
       resize();
     });
+
+    // add a chart button
+    $(analytics.csts.css.addchart).click(function () {
+      addChart();
+    });
   }
 
   function initResize () {
@@ -656,11 +698,20 @@ analytics.display = (function() {
     $(window).on('resizeend', resize);
     $(window).on("column:resize:stop", resize);
 
-    //$(analytics.csts.css.columns).sortable({ distance: 20, connectWith: analytics.csts.css.columns });
-    //$(analytics.csts.css.columns).disableSelection();
+    // init charts drag/drop
+    $(analytics.csts.css.columnsSortable).sortable({
+      distance: 20,
+      connectWith: analytics.csts.css.columnsSortable,
+      handle: ".chart-header",
+      opacity: 0.6,
+      cursor: "move",
+      scroll: false,
+      update: function() {
+        updateLayout();
+        display.resize();
+      }
+    });
   }
-
-
 
   display.init = function () {
     initCharts();

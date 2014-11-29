@@ -39,11 +39,13 @@ var analytics = {
       header           : '.navbar',
       columnsContainer : '#columns',
       columns          : '.chart-columns',
+      columnsSortable  : '.chart-columns-sortable',
       charts           : '.chart',
       chartsClass      : 'chart',
       factSelector     : '#fact-selector',
       reset            : '#reset',
       resize           : '#resize',
+      addchart         : '#addchart',
       zoom             : 'zoom'
     },
     palettes : ["YlGn", "GnBu", "BuPu", "RdPu", "PuRd", "OrRd", "YlOrRd", "YlOrBr", "PuOr", "BrBG", "PRGn", "PiYG", "RdBu", "RdGy", "RdYlBu", "RdYlGn"],

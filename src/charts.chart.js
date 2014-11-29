@@ -82,11 +82,11 @@ analytics.charts.chart = (function () {
     };
 
     _chart.width = function() {
-      return $(_selector).width();
+      return $(_selector+' .chart-container').width();
     };
 
     _chart.height = function() {
-      var height = $(_selector).height() - $(_selector+' .chart-header').height();
+      var height = $(_selector).height() - $(_selector+' .chart-header').outerHeight() - $(_selector+' .chart-container').outerHeight() + $(_selector+' .chart-container').height();
       optionsHeight(height);
       return height;
     };
@@ -220,6 +220,7 @@ analytics.charts.chart = (function () {
         .width(_chart.width())
         .height(_chart.height());
       _chart._resizeSpecific();
+      $(_selector).css('height', 'auto');
       return _chart.render();
     };
 
@@ -232,7 +233,9 @@ analytics.charts.chart = (function () {
     };
 
     _chart.delete = function () {
-      dc.deregisterChart(_chart.element());
+      try {
+        dc.deregisterChart(_chart.element());
+      } catch (err) {}
       $(_selector).empty();
       $(_selector).removeClass('chart-hidden chart-'+_chart.type());
     };
