@@ -155,20 +155,20 @@ analytics.display = (function() {
     $(selector).remove();
     chart.delete();
     _charts[pos.i].splice(pos.j, 1);
+    return pos;
   }
 
   function replaceChart(chart, newType) {
     // get old infos & delete old chart
     var options = chart.options();
-    var pos = getChartPosition(chart);
     var selector = chart.selector();
-    chart.delete();
+    var pos = deleteChart(chart);
 
     // create new chart and restore options & position
-    chart = analytics.charts[newType](selector);
+    chart = analytics.charts[newType]("#chart-" + _nextChartId++);
     for (var option in options)
       chart.setOption(option, options[option]);
-    _charts[pos.i][pos.j] = chart;
+    insertChart(chart, pos.i, pos.j);
 
     return chart;
   }

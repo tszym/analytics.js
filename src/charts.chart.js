@@ -237,7 +237,6 @@ analytics.charts.chart = (function () {
         dc.deregisterChart(_chart.element());
       } catch (err) {}
       $(_selector).empty();
-      $(_selector).removeClass('chart-hidden chart-'+_chart.type());
     };
 
     /**
