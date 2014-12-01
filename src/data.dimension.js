@@ -341,6 +341,8 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
           .reduce(function (a, b) { return a + b; }, 0.0);
   };
 
+  // importTest "data.dimension-test-accessors.js"
+
   return _dimension;
 };
 
