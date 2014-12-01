@@ -132,7 +132,7 @@ analytics.charts.chart = (function () {
     };
 
     _chart.setOption = function(key, value) {
-      if (typeof _chart._options[key] != 'undefined' && _chart._options[key] !== null)
+      if (typeof _chart._options[key] != 'undefined' && _chart._options[key] !== null && value !== null)
         _chart._options[key] = value;
       return _chart;
     };

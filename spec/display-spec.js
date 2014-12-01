@@ -1,6 +1,6 @@
 describe('analytics.display', function() {
 
-  analytics.query.queryAPI(generateAPI([c]));
+  analytics.query.queryAPI(getQueryAPI());
 
   beforeEach(function() {
     analytics.reset();
@@ -116,7 +116,7 @@ describe('analytics.display', function() {
       analytics.state.initMeasure();
       analytics.state.initDimensions();
       analytics.data.load();
-      analytics.display.initRender();
+      analytics.display.render();
 
       var options = {
         type: "pie",

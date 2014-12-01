@@ -60,5 +60,4 @@ describe('analytics.factSelector', function() {
       expect($('#fact-selector div:last li').length).toBe(3);
     });
   });
-
 });

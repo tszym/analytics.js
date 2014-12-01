@@ -79,3 +79,27 @@ var c = cube("C", "Le cube")
         .member("S", "Snack Goods", "Snack Goods desc")
         .member("H", "Hammer", "Hammer desc")
         .member("F", "Fork", "Fork desc");
+
+function getQueryAPI() {
+  return generateAPI([c]);
+}
+
+function getTestsResults() {
+  return {
+    'nbCrossedMembers' : 40,
+    'groupContriesAll' : [ { key: 'BE', value: 1.4347258900241457 }, { key: 'DE', value: 2.3176831192402343 }, { key: 'LU', value: 1.8476225875732857 }, { key: 'NL', value: 2.087439192080086 }, { key: 'UK', value: 1.6591085039886473 } ],
+    'schema' : 'Olap',
+    'cube' : {id : 'C', caption : 'Le cube'},
+    'measure' : {id : 'E', caption: 'Export'},
+    'dimension0' : {
+      geoProp : "Geom",
+      members : ["BE", "DE", "NL", "LU", "UK"],
+      toDrill : ["BE"],
+      toDrillAll : ["BE", "DE", "NL", "LU", "UK"],
+      toDrillMulti : ["BE", "UK"],
+      members1 : ["BE1", "BE2", "BE3"],
+      members1All : [ 'BE1', 'BE2', 'BE3', 'DE7', 'DEC', 'DE9', 'DEB', 'DE3', 'DEG', 'DEF', 'DE8', 'DE4', 'DEA', 'DEE', 'DE1', 'DE2', 'DE6', 'DE5', 'DED', 'NL4', 'NL3', 'NL1', 'NL2', 'LU0', 'UKI', 'UKC', 'UKM', 'UKG', 'UKD', 'UKF', 'UKH', 'UKL', 'UKN', 'UKJ', 'UKK', 'UKE' ],
+      members1Multi : [ 'BE1', 'BE2', 'BE3', 'UKI', 'UKC', 'UKM', 'UKG', 'UKD', 'UKF', 'UKH', 'UKL', 'UKN', 'UKJ', 'UKK', 'UKE' ]
+    }
+  };
+}

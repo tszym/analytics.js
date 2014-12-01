@@ -117,7 +117,7 @@ module.exports = function (grunt) {
           display: "short",
           summary: true,
           specs:  "spec/*-spec.js",
-          helpers: "spec/integrationHelpers/*.js",
+          helpers: ["spec/dependancies/*.js", "spec/integrationHelpers/*.js"],
           version: "2.0.0",
           outfile: "spec/integration.html",
           keepRunner: true

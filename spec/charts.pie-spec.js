@@ -6,7 +6,7 @@ describe('charts.pie', function () {
 
     beforeEach(function () {
       div = appendChartID("pie");
-      analytics.query.queryAPI(generateAPI([c]));
+      analytics.query.queryAPI(getQueryAPI());
       analytics.state.initMeasure();
       analytics.state.initDimensions();
       analytics.data.load();
@@ -24,3 +24,4 @@ describe('charts.pie', function () {
     });
   });
 });
+

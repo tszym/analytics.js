@@ -2,16 +2,16 @@ describe('analytics.state', function() {
 
   // before all
   analytics.reset();
-  analytics.query.queryAPI(generateAPI([c]));
+  analytics.query.queryAPI(getQueryAPI());
 
   describe('initMeasure', function() {
     it('should load a schema, cube and measure', function() {
       analytics.state.initMeasure();
-      expect(analytics.state.schema()).toEqual("Olap");
-      expect(analytics.state.cube().id()).toEqual("C");
-      expect(analytics.state.cube().caption()).toEqual("Le cube");
-      expect(analytics.state.measure().id()).toEqual("E");
-      expect(analytics.state.measure().caption()).toEqual("Export");
+      expect(analytics.state.schema()).toEqual(getTestsResults().schema);
+      expect(analytics.state.cube().id()).toEqual(getTestsResults().cube.id);
+      expect(analytics.state.cube().caption()).toEqual(getTestsResults().cube.caption);
+      expect(analytics.state.measure().id()).toEqual(getTestsResults().measure.id);
+      expect(analytics.state.measure().caption()).toEqual(getTestsResults().measure.caption);
     });
   });
 
@@ -26,8 +26,8 @@ describe('analytics.state', function() {
       expect(dimensions[0].currentLevel()).toBe(0);
       expect(dimensions[0].type()).toEqual("Geometry");
       expect(dimensions[0].properties().length).toBe(1);
-      expect(dimensions[0].properties()[0].id()).toEqual("Geom");
-      expect(Object.keys(dimensions[0].getLastSlice())).toEqual(["BE", "DE", "NL", "LU", "UK"]);
+      expect(dimensions[0].properties()[0].id()).toEqual(getTestsResults().dimension0.geoProp);
+      expect(Object.keys(dimensions[0].getLastSlice())).toEqual(getTestsResults().dimension0.members);
     });
   });
 
@@ -36,20 +36,21 @@ describe('analytics.state', function() {
 
       var dimension = analytics.state.dimensions()[0];
 
-      analytics.state.drillDown(dimension, Object.keys(dimension.getLastSlice())[0], "simple");
+      analytics.state.drillDown(dimension, getTestsResults().dimension0.toDrill, "simple");
 
       expect(dimension.currentLevel()).toBe(1);
-      expect(Object.keys(dimension.getLastSlice())).toEqual(["BE1", "BE2", "BE3"]);
+      expect(Object.keys(dimension.getLastSlice())).toEqual(getTestsResults().dimension0.members1);
     });
 
     it('should not be able to drill when at last level', function() {
 
       var dimension = analytics.state.dimensions()[0];
+      dimension._levels([dimension._levels()[0], dimension._levels()[1]]); // limit virtually to 2 levels
 
-      analytics.state.drillDown(dimension, Object.keys(dimension.getLastSlice())[0], "simple");
+      analytics.state.drillDown(dimension, getTestsResults().dimension0.toDrill, "simple");
 
       expect(dimension.currentLevel()).toBe(1);
-      expect(Object.keys(dimension.getLastSlice())).toEqual(["BE1", "BE2", "BE3"]);
+      expect(Object.keys(dimension.getLastSlice())).toEqual(getTestsResults().dimension0.members1);
     });
   });
 
@@ -61,7 +62,7 @@ describe('analytics.state', function() {
       analytics.state.rollUp(dimension);
 
       expect(dimension.currentLevel()).toBe(0);
-      expect(Object.keys(dimension.getLastSlice())).toEqual(["BE", "DE", "NL", "LU", "UK"]);
+      expect(Object.keys(dimension.getLastSlice())).toEqual(getTestsResults().dimension0.members);
     });
 
     it('should not be able to roll when at first level', function() {
@@ -71,7 +72,7 @@ describe('analytics.state', function() {
       analytics.state.rollUp(dimension);
 
       expect(dimension.currentLevel()).toBe(0);
-      expect(Object.keys(dimension.getLastSlice())).toEqual(["BE", "DE", "NL", "LU", "UK"]);
+      expect(Object.keys(dimension.getLastSlice())).toEqual(getTestsResults().dimension0.members);
     });
   });
 
@@ -81,10 +82,10 @@ describe('analytics.state', function() {
 
       var dimension = analytics.state.dimensions()[0];
 
-      analytics.state.drillDown(dimension, Object.keys(dimension.getLastSlice())[0], "selected");
+      analytics.state.drillDown(dimension, getTestsResults().dimension0.toDrillAll, "selected");
 
       expect(dimension.currentLevel()).toBe(1);
-      expect(Object.keys(dimension.getLastSlice())).toEqual(['BE1', 'BE2', 'BE3', 'DE7', 'DEC', 'DE9', 'DEB', 'DE3', 'DEG', 'DEF', 'DE8', 'DE4', 'DEA', 'DEE', 'DE1', 'DE2', 'DE6', 'DE5', 'DED', 'NL4', 'NL3', 'NL1', 'NL2', 'LU0', 'UKI', 'UKC', 'UKM', 'UKG', 'UKD', 'UKF', 'UKH', 'UKL', 'UKN', 'UKJ', 'UKK', 'UKE']);
+      expect(Object.keys(dimension.getLastSlice())).toEqual(getTestsResults().dimension0.members1All);
     });
 
     it('should drill down on the selected members if some selected', function() {
@@ -92,11 +93,11 @@ describe('analytics.state', function() {
       var dimension = analytics.state.dimensions()[0];
       analytics.state.rollUp(dimension);
 
-      dimension.filters(["BE", "UK"]);
-      analytics.state.drillDown(dimension, Object.keys(dimension.getLastSlice())[0], "selected");
+      dimension.filters(getTestsResults().dimension0.toDrillMulti);
+      analytics.state.drillDown(dimension, getTestsResults().dimension0.toDrillMulti, "selected");
 
       expect(dimension.currentLevel()).toBe(1);
-      expect(Object.keys(dimension.getLastSlice())).toEqual([ 'BE1', 'BE2', 'BE3', 'UKI', 'UKC', 'UKM', 'UKG', 'UKD', 'UKF', 'UKH', 'UKL', 'UKN', 'UKJ', 'UKK', 'UKE' ]);
+      expect(Object.keys(dimension.getLastSlice())).toEqual(getTestsResults().dimension0.members1Multi);
     });
   });
 
