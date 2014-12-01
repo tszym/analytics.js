@@ -24,6 +24,11 @@ analytics.charts.player = function (chart) {
   var _step = function() {
     if (_currentMember > _members.length - 1) {
       _callback();
+      _chart.element().filterAll();
+      _members.forEach(function (member) {
+        _chart.element().filter(member);
+      });
+      dc.redrawAll();
       return;
     }
 
