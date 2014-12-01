@@ -2,6 +2,345 @@
 ## analytics.**query** namespace
 
 This namespace helps query the OLAP cube by specifying the API provided to it in order to perform the queries.
+
+### init
+
+Initialize the QueryAPI dependency of Query
+
+### getSchemas
+
+Get schemas list
+
+### getCubes
+
+Get cubes of a schema
+
+### getMesures
+
+Get mesures of a cube and a schema
+
+Measures are members of the only level of the only hierarchy of the dimension with type `Measure`
+
+```js
+"idMeasure" : {
+    "caption" : "theMeasure",
+    "unit" : "theUnit"
+}
+```
+
+### getCubesAndMeasures
+
+Get a list of cubes and for each the measures of this cube
+
+### getDimensions
+
+Get dimensions of a cube in a given schema
+
+This wil return a map of id : dimensionMap as the following example
+
+```js
+"idDimension" : {
+    "caption" : "theCaption",
+    "type" : "theType"
+}
+```
+
+### getGeoDimension
+
+Get the id of the geographic dimension
+
+### getTimeDimension
+
+Get the id of the time dimension
+
+### getXXDimension
+
+Get the id of the XXXX dimension
+
+### getGeoProperty
+
+Return the geographical property of a dimension
+
+### getHierarchies
+
+Get the list of hierarchies of a dimension
+
+### getLevels
+
+Get the list of levels of a hierachy. Note that Query hide the real level ID. For Query users, a level is identified by its position in the list.
+
+```js
+[
+  "Countries", //caption of the level at 0 position
+  "Regions"    //caption of the level at 1 position
+]
+```
+
+### getMembers
+
+Get the list of members
+
+If parentMember parameter is not set, returns the map of all members of the specified level with or without the properties values depending on the properties parameter.
+
+If parentMember parameter is set (parentMember being a member of the level idLevel), returns the map of all members descending from this member from the level idlevel + descendingLevel.
+
+Note that Query hide the real level ID. For Query users, a level is identified by its position in the list.
+
+```js
+{
+ "FR" : // member key
+   {
+     "caption" : "France",
+     "geometry" : {<geoJSONofFrance>}, // property area value
+     "area" : 123.5 // property area value
+   },
+ "BE" :
+   {
+     "caption" : "Belgium",
+     "geometry" : {<geoJSONofBelgium>},
+     "area" : 254.1
+   },
+   ...
+}
+```
+
+### getMembersInfos
+
+Get the list of member objects from their IDs
+
+Note that Query hide the real level ID. For Query users, a level is identified by its position in the list.
+
+```js
+{
+ "FR" : // member key
+   {
+     "caption" : "France",
+     "geometry" : {<geoJSONofFrance>}, // property area value
+     "area" : 123.5 // property area value
+   },
+ "BE" :
+   {
+     "caption" : "Belgium",
+     "geometry" : {<geoJSONofBelgium>},
+     "area" : 254.1
+   },
+   ...
+}
+```
+
+### getProperties
+
+Get the list of properties of a level
+
+```js
+{
+  "geom" : {
+    "caption" : "Geom",
+    "type" : "Geometry"
+  },
+  "surf" : {
+    "caption" : "Surface",
+    "type" : "Standard"
+  }
+}
+```
+
+### drill
+
+Select a cube
+
+### push
+
+Add a measure to the list of measures you want to get values of.
+
+### pull
+
+Remove a measure from the list.
+
+### slice
+
+Select a list of members from an hierarchy.
+
+### project
+
+Remove the slice set on an hierarchy.
+
+### filter
+
+Apply a filter rule on the members of an hierarchy.
+
+### rank
+
+Rank the results.
+
+### execute
+
+Execute the query.
+
+### clear
+
+Clear the query.
+
+### checkAPIResponse
+
+Checks the given response from the QueryAPI component
+
+Throws exception is the given response from the QueryAPI is malformed or contains an error code
+
+### isAllowedDimensionType
+
+Determines if the given type is a legal type of dimension
+
+### cacheSchema
+
+Store the given schema in the metadatas cache
+
+### cacheCube
+
+Store the given cube in the metadatas cache into the given schema
+
+### cacheDimension
+
+Store the given dimension in the metadatas cache into the given cube
+
+### cacheHierarchy
+
+Store the given hierarchy in the metadatas cache into the given dimension
+
+### cacheLevel
+
+Store the given level in the metadatas cache into the given hierarchy
+
+### cacheProperty
+
+Store the given property in the metadatas cache into the given level
+
+### isSchemaInCache
+
+Determines if a schema with the given id is in the metadata cache
+
+### isCubeInCache
+
+Determines if a cube with the given id is in the given schema in the metadata cache
+
+### isDimensionInCache
+
+Determines if a dimension with the given id is in the given cube in the metadata cache
+
+### isHierarchyInCache
+
+Determines if a hierarchy with the given id is in the given dimension in the metadata cache
+
+### isLevelInCache
+
+Determines if a level with the given id is in the given hierarchy in the metadata cache
+
+### isPropertyInCache
+
+Determines if a property with the given id is in the given level in the metadata cache
+
+### isCacheEmpty
+
+Determines if the metadatas cache is absolutely empty
+
+### isCubesListEmpty
+
+Determines if the given schema in metadatas cache contains cubes
+
+### isDimensionsListEmpty
+
+Determines if the given cube in metadatas cache contains dimensions
+
+### isHierarchiesListEmpty
+
+Determines if the given dimension in metadatas cache contains hierarchies
+
+### isLevelsListEmpty
+
+Determines if the given hierarchy in metadatas cache contains levels
+
+### isPropertiesListEmpty
+
+Determines if the given level in metadatas cache contains properties
+
+### clearCache
+
+Clear the metadatas cache and the schemas poperty
+
+```js
+>>>this.isCacheEmpty();
+false
+>>>this.clearCache();
+>>>this.isCacheEmpty();
+true
+```
+
+### getSchemasFromCache
+
+Retrieve the list of schemas from the cache as a flat map of strings idSchema : caption
+
+### getCubesFromCache
+
+Retrieve the list of cubes of a schema from the cache as a flat map of strings idCube : caption
+
+### getDimensionsFromCache
+
+Retrieve the list of dimensions of a cube from the cache as a map of strings
+
+```js
+"idDimension" : {
+    "caption" : "theCaption",
+    "type" : "theType"
+}
+```
+
+### getHierarchiesFromCache
+
+Retrieve the list of hierarchies of a dimension from the cache as a map of strings
+
+```js
+{
+"idHierarchyA" : "captionHierarchyA",
+"idHierarchyB" : "captionHierarchyB"
+}
+```
+
+### getLevelsFromCache
+
+Retrieve the list of levels of a hierarchy from the cache as an array of strings Note that the strings are the captions of the levels, not their id
+
+```js
+[
+"captionHierarchyA",
+"captionHierarchyB"
+]
+```
+
+### getPropertiesFromCache
+
+Retrieve the list of properties of a level from the cache
+
+```js
+{
+  "geom" : {
+    "caption" : "Geom",
+    "type" : "Geometry"
+  },
+  "surf" : {
+    "caption" : "Surface",
+    "type" : "Standard"
+  }
+}
+```
+
+### getLevelIDFromIndex
+
+Get the level’s ID from its index
+
+### mapWithCaptionToSimpleMap
+
+Transform a deep map\<id:map\<caption\>\> with a caption attribute into a flat map\<id:caption\>
+
 **/
 analytics.query = (function() {
 
