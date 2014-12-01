@@ -146,7 +146,7 @@ analytics.display = (function() {
   function addChart() {
     var chart = analytics.charts.wordcloud("#chart-" + _nextChartId++);
     insertChart(chart, 1, 0);
-    display._displayParamsForm(chart);
+    display._displayParamsForm(chart, true);
   }
 
   function deleteChart(chart) {
@@ -262,7 +262,7 @@ analytics.display = (function() {
   * display.**freezeColorScales**()
   * display.**unfreezeColorScales**()
   **/
-  display._displayParamsForm = function (chart) {
+  display._displayParamsForm = function (chart, create) {
 
     var options = chart.options();
 
@@ -412,10 +412,17 @@ analytics.display = (function() {
       updateChart(chart, options);
     });
 
-    $('#chartparams-delete').unbind('click').click(function() {
+    // adapt form for create / update
+    $('#chartparams-cancel, #chartparams-delete').unbind('click').click(function() {
       $('#chartparams').modal('hide');
-      deleteChart(chart);
     });
+    if (create) {
+      $('#chartparams-cancel').click(function() { deleteChart(chart); });
+      $('#chartparams-delete').hide();
+    }
+    else {
+      $('#chartparams-delete').show().click(function() { deleteChart(chart); });
+    }
 
     // show modal
     $('#chartparams').modal('show');
