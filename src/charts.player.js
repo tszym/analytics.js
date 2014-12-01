@@ -14,7 +14,6 @@ analytics.charts.player = function (chart) {
   _members.sort();
 
   var _currentMember = 0;
-  var _timeout = chart.options().playerTimeout;
   var _running = true;
   var _callback = function () { };
   var _chart = chart;
@@ -44,31 +43,23 @@ analytics.charts.player = function (chart) {
 
     _currentMember++;
 
-    setTimeout(_step, _play.timeout());
+    setTimeout(_step, _chart.options().playerTimeout);
   };
 
   /**
   ### Player object
 
   * *boolean* charts.player.**running**()
-  * *mixed* charts.player.**timeout**([*integer* timeout])
   * *mixed* charts.player.**callback**([*function* cb])
   * *this* charts.player.**start**()
   * *this* charts.player.**pause**()
 
   The optional `callback` is called at the end of the play.
-  The timeout is the time to wait between two members.
 
   **/
 
   _play.running = function () {
     return _running;
-  };
-
-  _play.timeout = function(timeout) {
-    if (!arguments.length) return _timeout;
-    _timeout = timeout;
-    return _play;
   };
 
   _play.callback = function(cb) {
@@ -79,7 +70,7 @@ analytics.charts.player = function (chart) {
 
   _play.start = function() {
     _running = true;
-    setTimeout(_step, _timeout);
+    setTimeout(_step, _chart.options().playerTimeout);
     return _play;
   };
 

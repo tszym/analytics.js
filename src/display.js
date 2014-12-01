@@ -491,9 +491,6 @@ analytics.display = (function() {
       if (options.playerTimeout < 50)
         options.playerTimeout = 50;
       chart.setOption("playerTimeout", options.playerTimeout);
-      if (chart.player() !== undefined) {
-        chart.player().timeout(options.playerTimeout);
-      }
     }
 
     // Update display
