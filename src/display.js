@@ -807,18 +807,24 @@ analytics.display = (function() {
 
     if (dimension.isDrillPossible()) {
 
+      var toDrill;
+      if (keys.ctrl)
+        toDrill = dimension.filters().length ? dimension.filters() : Object.keys(dimension.getLastSlice());
+      else
+        toDrill = [member];
+
       // update display
       display.getChartsUsingDimension(dimension).forEach(function (chart) {
         if (chart.element()._onZoomIn !== undefined && chart.element().chartID() !== dcChartID) {
-          chart.element()._onZoomIn(member);
+          chart.element()._onZoomIn(toDrill);
         }
       });
 
       // update state
       if (keys.ctrl)
-        analytics.state.drillDown(dimension, member, 'selected');
+        analytics.state.drillDown(dimension, toDrill, 'selected');
       else
-        analytics.state.drillDown(dimension, member, 'simple');
+        analytics.state.drillDown(dimension, toDrill, 'simple');
 
       // reset filter on charts using this dimension
       display.filterAllChartsUsingDimension(dimension);

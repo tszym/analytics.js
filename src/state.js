@@ -170,9 +170,9 @@ analytics.state = (function() {
 
   Two functions are available to handle drill-down and roll-up of the current state.
 
-  #### state.**drillDown**(*data.dimension* dimension, *string* member, *string* type)
+  #### state.**drillDown**(*data.dimension* dimension, *string[]* members, *string* type)
 
-  Drill down on a given member of the given dimension and reload data.
+  Drill down on the given members of the given dimension and reload data.
 
   You can choose the type of drill-down with the `type` parameter, which can be:
 
@@ -182,16 +182,14 @@ analytics.state = (function() {
 
   `partial` drill-down is not implemented yet.
   **/
-  state.drillDown = function (dimension, member, type) {
+  state.drillDown = function (dimension, members, type) {
 
     if (dimension.isDrillPossible()) {
       var newMembers;
-
       switch (type) {
         case 'selected':
-        var toDrill = dimension.filters().length ? dimension.filters() : Object.keys(dimension.getLastSlice());
         newMembers = {};
-        toDrill.forEach(function (member) {
+        members.forEach(function (member) {
           var newMembersTemp = analytics.query.getMembers(_schema, _cube, dimension.id(), dimension.hierarchy(), dimension.currentLevel(), dimension.properties().length > 0, member);
           for (var newMember in newMembersTemp)
             newMembers[newMember] = newMembersTemp[newMember];
@@ -199,7 +197,7 @@ analytics.state = (function() {
         break;
 
         default:
-        newMembers = analytics.query.getMembers(_schema, _cube, dimension.id(), dimension.hierarchy(), dimension.currentLevel(), dimension.properties().length > 0, member);
+        newMembers = analytics.query.getMembers(_schema, _cube, dimension.id(), dimension.hierarchy(), dimension.currentLevel(), dimension.properties().length > 0, members[0]);
         break;
       }
 
