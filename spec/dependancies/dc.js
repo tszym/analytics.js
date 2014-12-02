@@ -3801,13 +3801,13 @@ dc.wheelMixin = function(_chart) {
             alt   : d3.event.altKey,
             shift : d3.event.shiftKey
         }
-        if (!disabledActions.mousewheel && zoomIn && (d3.event.deltaY < 0 || d3.event.wheelDeltaY > 0) && _chart._callbackZoomIn !== undefined) {
+        if (!disabledActions.mousewheel && zoomIn && (d3.event.deltaY < 0 || d3.event.wheelDeltaY > 0 || d3.event.deltaX < 0 || d3.event.wheelDeltaX > 0) && _chart._callbackZoomIn !== undefined) {
             delayAction('mousewheel', 1500);
             _chart._zoomIn(d, keys);
         }
 
         // on zoomIn-out
-        else if (!disabledActions.mousewheel && zoomOut && (d3.event.deltaY > 0 || d3.event.wheelDeltaY < 0) && _chart._callbackZoomOut !== undefined) {
+        else if (!disabledActions.mousewheel && zoomOut && (d3.event.deltaY > 0 || d3.event.wheelDeltaY < 0 || d3.event.deltaX > 0 || d3.event.wheelDeltaX < 0) && _chart._callbackZoomOut !== undefined) {
             delayAction('mousewheel', 1500);
             _chart._zoomOut();
         }
@@ -6928,13 +6928,17 @@ dc.geoChoroplethChart = function (parent, chartGroup) {
     }
 
     _chart._zoomIn = function (d, keys) {
-        var elements = [];
-        if(keys.ctrl){
-            elements = _chart.filters();
-        } else {
-            elements.push(d.id);
-        }
-        _chart._onZoomIn(elements);
+        var toZoom;
+        var layerData = this.geoJsons()[this.geoJsons().length - 1].data;
+
+        if (keys.ctrl)
+            toZoom = _chart.filters().length ? _chart.filters() : layerData.map(function(d) { return d.id; });
+        else if (keys.shift)
+            toZoom = layerData.map(function(d) { return d.id; });
+        else
+            toZoom = [d.id];
+
+        _chart._onZoomIn(toZoom);
         _chart.callbackZoomIn()(d.id, _chart.chartID(), keys);
     };
 
