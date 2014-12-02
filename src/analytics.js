@@ -93,6 +93,24 @@ analytics.init = function (queryAPI, state) {
   analytics.display.render();
 };
 
+analytics.setCsts = function (csts) {
+  function setCstsRec (cstsObject, toAdd) {
+    for (var cstKey in toAdd) {
+      var typeOld = Array.isArray(cstsObject[cstKey]) ? 'array' : typeof cstsObject[cstKey];
+      var typeNew = Array.isArray(toAdd[cstKey]) ? 'array' : typeof toAdd[cstKey];
+
+      if (typeOld == 'object' && typeNew == 'object') {
+        setCstsRec(cstsObject[cstKey], toAdd[cstKey]);
+      }
+      else if (typeof typeOld != 'undefined' && typeof typeOld != 'object' && typeNew != 'undefined' && typeNew != 'object') {
+        cstsObject[cstKey] = toAdd[cstKey];
+      }
+    }
+  }
+
+  setCstsRec (analytics.csts, csts);
+};
+
 // importTest "analytics-test-accessors.js"
 
 // import "query.js"
