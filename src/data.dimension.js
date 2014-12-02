@@ -202,7 +202,7 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   };
 
   _dimension.isDrillPossible = function () {
-    return (_dimension.currentLevel() < _dimension.maxLevel());
+    return (_dimension.currentLevel() < _dimension.maxLevel() && !_isPartialDrillDown);
   };
 
   _dimension.isRollPossible = function () {
@@ -211,6 +211,15 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
 
   _dimension.nbRollPossible = function () {
     return _dimension.currentLevel();
+  };
+
+  // TODO Replace this by the better approch:
+  // https://github.com/loganalysis/analytics/wiki/Handling-drill-down-&--roll-up#full-support
+  var _isPartialDrillDown = false;
+  _dimension.isPartialDrillDown = function (isPartialDrillDown) {
+    if (!arguments.length) return _isPartialDrillDown;
+    _isPartialDrillDown = isPartialDrillDown;
+    return _dimension;
   };
 
   /**

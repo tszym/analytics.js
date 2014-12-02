@@ -170,7 +170,7 @@ analytics.state = (function() {
 
   Two functions are available to handle drill-down and roll-up of the current state.
 
-  #### state.**drillDown**(*data.dimension* dimension, *string[]* members, *string* type)
+  #### state.**drillDown**(*data.dimension* dimension, *string* member, *string* type)
 
   Drill down on the given members of the given dimension and reload data.
 
@@ -180,15 +180,21 @@ analytics.state = (function() {
   * `selected`: Drill down on all the selected members, ie show the children of all these members at the same time (go from NUTS0 to Germany & France's NUTS1)
   * `partial`: Drill down on the given member and keep the current displayed members except the drilled one (go from NUTS0 to NUTS0 except Germany + Germany's NUTS1)
 
-  `partial` drill-down is not implemented yet.
+  **TODO:** `partial` drill-down implementation should be improved by following the explainations here:
+  <https://github.com/loganalysis/analytics/wiki/Handling-drill-down-&--roll-up#full-support>.
+
+  When moving to the new approch, edit data.dimension.js to remove isPartialDrillDown and restore isDrillPossible.
   **/
-  state.drillDown = function (dimension, members, type) {
+  state.drillDown = function (dimension, member, type) {
 
     if (dimension.isDrillPossible()) {
       var newMembers;
       switch (type) {
         case 'selected':
+        var members = dimension.filters().length ? dimension.filters() : Object.keys(dimension.getLastSlice());
         newMembers = {};
+
+        // add new data
         members.forEach(function (member) {
           var newMembersTemp = analytics.query.getMembers(_schema, _cube, dimension.id(), dimension.hierarchy(), dimension.currentLevel(), dimension.properties().length > 0, member);
           for (var newMember in newMembersTemp)
@@ -196,8 +202,24 @@ analytics.state = (function() {
         });
         break;
 
+        case 'partial':
+        dimension.isPartialDrillDown(true);
+        newMembers = {};
+        var newMembersTemp = dimension.getLastSlice();
+
+        // copy old data
+        for (var newMember in newMembersTemp)
+          if (newMember != member)
+            newMembers[newMember] = newMembersTemp[newMember];
+
+        // add new data
+        newMembersTemp = analytics.query.getMembers(_schema, _cube, dimension.id(), dimension.hierarchy(), dimension.currentLevel(), dimension.properties().length > 0, member);
+        for (newMember in newMembersTemp)
+          newMembers[newMember] = newMembersTemp[newMember];
+        break;
+
         default:
-        newMembers = analytics.query.getMembers(_schema, _cube, dimension.id(), dimension.hierarchy(), dimension.currentLevel(), dimension.properties().length > 0, members[0]);
+        newMembers = analytics.query.getMembers(_schema, _cube, dimension.id(), dimension.hierarchy(), dimension.currentLevel(), dimension.properties().length > 0, member);
         break;
       }
 
@@ -216,6 +238,9 @@ analytics.state = (function() {
     nbLevels = Math.min(nbLevels, dimension.nbRollPossible());
 
     if (nbLevels > 0) {
+
+      // remove the partialDrill flag
+      dimension.isPartialDrillDown(false);
 
       // remove last slice nbLevels times
       for (var i = 0; i < nbLevels; i++)

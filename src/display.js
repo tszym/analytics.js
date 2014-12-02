@@ -811,24 +811,29 @@ analytics.display = (function() {
 
     if (dimension.isDrillPossible()) {
 
-      var toDrill;
-      if (keys.ctrl)
-        toDrill = dimension.filters().length ? dimension.filters() : Object.keys(dimension.getLastSlice());
-      else
-        toDrill = [member];
+      var toZoom, type;
+      if (keys.ctrl) {
+        toZoom = dimension.filters().length ? dimension.filters() : Object.keys(dimension.getLastSlice());
+        type = 'selected';
+      }
+      else if (keys.shift) {
+        toZoom = Object.keys(dimension.getLastSlice());
+        type = 'partial';
+      }
+      else {
+        toZoom = [member];
+        type = 'simple';
+      }
 
       // update display
       display.getChartsUsingDimension(dimension).forEach(function (chart) {
         if (chart.element()._onZoomIn !== undefined && chart.element().chartID() !== dcChartID) {
-          chart.element()._onZoomIn(toDrill);
+          chart.element()._onZoomIn(toZoom);
         }
       });
 
       // update state
-      if (keys.ctrl)
-        analytics.state.drillDown(dimension, toDrill, 'selected');
-      else
-        analytics.state.drillDown(dimension, toDrill, 'simple');
+      analytics.state.drillDown(dimension, member, type);
 
       // reset filter on charts using this dimension
       display.filterAllChartsUsingDimension(dimension);
