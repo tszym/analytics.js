@@ -72,7 +72,7 @@ analytics.charts.map = (function () {
       _chart.element()
         .dimension(dimension.crossfilterDimension())
         .group(dimension.crossfilterGroup())
-        .setNbZoomLevels(dimension.maxLevel() + 1)
+        .setNbZoomLevels(dimension.maxLevel())
 
         .title(function (d) {
           if (members[d.key] === undefined) {
