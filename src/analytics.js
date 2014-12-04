@@ -126,6 +126,7 @@ analytics.setCsts = function (csts) {
 
 // import "utils.js"
 // import "query.js"
+// import "query.cache.js"
 // import "data.js"
 // import "data.cube.js"
 // import "data.measure.js"
