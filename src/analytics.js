@@ -49,6 +49,8 @@ var analytics = {
       zoom             : 'zoom'
     },
     palettes : ["YlGn", "GnBu", "BuPu", "RdPu", "PuRd", "OrRd", "YlOrRd", "YlOrBr", "PuOr", "BrBG", "PRGn", "PiYG", "RdBu", "RdGy", "RdYlBu", "RdYlGn"],
+    scaleType : 'quantile',
+    nbBins : 6,
     txts : {
       charts : {
         map : 'Choropleth map',

@@ -19,9 +19,9 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
 
   var _stack = []; // stack of all slice done on this hierarchy
 
-  var _scaleType    = 'quantile';
+  var _scaleType    = analytics.csts.scaleType;
   var _colorPalette = analytics.csts.palettes[analytics.data.dimension.nextI++ % analytics.csts.palettes.length];
-  var _nbBins       = 4;
+  var _nbBins       = analytics.csts.nbBins;
 
   _dimension._crossfilterDimension = null; // crossfilter element for this dimension
   _dimension._crossfilterGroups = {}; // crossfilter element for the group of this dimension

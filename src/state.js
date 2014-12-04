@@ -267,7 +267,10 @@ analytics.state = (function() {
         hierarchy    : dimension.hierarchy(),
         filters      : dimension.filters(),
         properties   : dimension.properties().map(function (property) { return property.id(); }),
-        membersStack : dimension.membersStack().map(function (members) { return Object.keys(members); })
+        membersStack : dimension.membersStack().map(function (members) { return Object.keys(members); }),
+        scaleType    : dimension.scaleType(),
+        colorPalette : dimension.colorPalette(),
+        nbBins       : dimension.nbBins()
       };
     });
 
@@ -333,6 +336,9 @@ analytics.state = (function() {
           dimensionObj.addSlice(analytics.query.getMembersInfos(savedState.schema, savedState.cube, dimension.id, dimension.hierarchy, levelId, members, dimension.properties.length > 0));
         });
         dimensionObj.filters(dimension.filters);
+        dimensionObj.scaleType(dimension.scaleType);
+        dimensionObj.colorPalette(dimension.colorPalette);
+        dimensionObj.nbBins(dimension.nbBins);
 
         _dimensions.push(dimensionObj);
         dimensionsMap[dimensionObj.id()] = dimensionObj;
