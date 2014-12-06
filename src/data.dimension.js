@@ -294,8 +294,13 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   _dimension.scale = function () {
 
     // Jenks natural breaks will fail if we have equal or less data than classes
-    if (_scaleType == 'natural' && _dimension.crossfilterGroup().all().length <= _nbBins)
-      _scaleType = 'quantize';
+    if (_scaleType == 'natural' && _dimension.crossfilterGroup().all().length <= _nbBins) {
+      _scaleType = 'quantile';
+      new PNotify({
+        title: analytics.csts.txts.jenksWarnTitle,
+        text: analytics.csts.txts.jenksWarnText
+      });
+    }
 
     switch (_scaleType) {
 

@@ -819,6 +819,7 @@ analytics.display = (function() {
       else if (keys.shift) {
         toZoom = Object.keys(dimension.getLastSlice());
         type = 'partial';
+        new PNotify('After a partial drill-down, you can only roll-up');
       }
       else {
         toZoom = [member];
