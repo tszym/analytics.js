@@ -373,7 +373,7 @@ analytics.display = (function() {
       // disable impossibles dimensions & measures
       dimensionsSelects.children('option').removeAttr('disabled');
       for (dimension in dimensionsMap) {
-        if (!analytics.charts[chartType].isPossibleDimension(dimensionsMap[dimension]))
+        if (!analytics.charts[chartType].isPossibleDimension(dimensionsMap[dimension]) || dimensionsMap[dimension].aggregated())
           dimensionsSelects.children('option[value="'+dimensionsMap[dimension].id()+'"]').attr('disabled', 'disabled');
       }
       measuresSelects.children('option').removeAttr('disabled');
