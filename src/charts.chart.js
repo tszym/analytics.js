@@ -364,7 +364,7 @@ analytics.charts.chart = (function () {
 
     function displayTip () {
       if (_chart.params().displayTip) {
-        var tip = analytics.display.getTip('chartType', _chart.type());
+        var tip = analytics.display.getTip('charts', _chart.type());
         if (tip) {
           var el = $('<span data-toggle="tooltip" class="chart-infos" data-placement="bottom" title="'+tip+'">'+
             '<i class="fa fa-nomargin fa-info-circle"></i></span>');
