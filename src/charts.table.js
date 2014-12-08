@@ -23,14 +23,13 @@ analytics.charts.table = (function () {
     };
 
     _chart._initChartSpecific = function () {
-      var dimension = _chart.dimensions()[0];
-      var members = dimension.getLastSlice();
       var format = d3.format(".3s");
 
       _chart.element()
         .size(Infinity)
         .columns([
           function(d){
+            var members = _chart.dimensions()[0].getLastSlice();
             var key = d.key ? d.key : d.data.key;
             if (members[key] === undefined) {
               return key;
