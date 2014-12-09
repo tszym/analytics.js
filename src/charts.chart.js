@@ -26,6 +26,8 @@ analytics.charts.chart = (function () {
     * *integer* charts.chart.**width**()
     * *integer* charts.chart.**height**()
     * *object* charts.chart.**element**() : returns the dc.js chart associated with the chart
+    * *mixed* charts.chart.**disabled**([*data.boolean* disabled]) : disable the chart (hide the chart)
+    * *mixed* charts.chart.**elasticAxes**([*data.boolean* elasticAxes]) : set elasticity of axes
     * *object* charts.chart.**options**() : return the options of the chart
     * *this* charts.chart.**setOption**(*string* key, *mixed* value)
     * *object* charts.chart.**player**() : return the current player object of the chart
@@ -164,6 +166,14 @@ analytics.charts.chart = (function () {
       return _chart;
     };
 
+    var _elasticAxes = true;
+
+    _chart.elasticAxes = function(elasticAxes) {
+      if (!arguments.length) return _elasticAxes;
+      _elasticAxes = elasticAxes;
+      return _chart;
+    };
+
     // display main functions
     _chart.build = function () {
       if (!_chart.element()) {
@@ -250,7 +260,6 @@ analytics.charts.chart = (function () {
     * charts.chart.**_initChartSpecific**(): used to initialize the chart
     * charts.chart.**_updateHeaderSpecific**() : called when the chart is created or updated
     * charts.chart.**_updateChartSpecific**() : called when the chart is created or updated
-
     **/
     _chart._resizeSpecific        = function () {};
     _chart._createDcElement       = function () {};
@@ -385,11 +394,13 @@ analytics.charts.chart = (function () {
           el.children().toggleClass('fa-pause');
 
           if (_player === undefined) {
+            analytics.display.freezeScalesAcross(_dimensions[0]);
             _player = analytics.charts.player(_chart);
             _player.callback(function () {
               el.children().toggleClass('fa-play');
               el.children().toggleClass('fa-pause');
 
+              analytics.display.unfreezeScales();
               _player = undefined;
             });
             _chart.element().filterAll();

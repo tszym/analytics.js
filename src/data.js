@@ -310,6 +310,76 @@ analytics.data = (function() {
     }
   };
 
+  /**
+  ### *float[]* data.**getValues2D**(*data.dimension* dimensionX, *data.dimension* dimensionY, [*data.measure* measure])
+
+  Return the list of values, one per combination of each member of `dimensionX` with the members of `dimensionY`. This is used to compute a domain
+  when you will filter across one of those dimensions.
+  **/
+  _data.getValues2D = function (dimensionX, dimensionY, measure) {
+    return isClientSideAggrPossible() ? getValues2DClient(dimensionX, dimensionY, measure) : getValues2DServer(dimensionX, dimensionY, measure);
+  };
+
+  function getValues2DClient (dimensionX, dimensionY, measure) {
+    measure = measure || analytics.state.measure();
+
+    // remove filters on dimensions X & Y
+    dimensionX.crossfilterDimension().filterAll();
+    dimensionY.crossfilterDimension().filterAll();
+
+    // compute output
+    var dimension = _dataCrossfilter
+      .dimension(function(d) { return d[dimensionX.id()] + '///' + d[dimensionY.id()]; });
+
+    var out = dimension
+      .group()
+      .reduceSum(function(d) { return d[measure.id()]; })
+      .all()
+      .map(function (d) { return d.value; });
+
+    // add filters on dimensions X & Y
+    dimensionX.filterAccordingToState();
+    dimensionY.filterAccordingToState();
+
+    dimension.dispose();
+    return out;
+  }
+
+  function getValues2DServer (dimensionX, dimensionY, measure) {
+    measure = measure || analytics.state.measure();
+
+    // clear query
+    analytics.query.clear();
+
+    // set cube
+    analytics.query.drill(analytics.state.cube().id());
+
+    // set dimensions to get
+    var dimensions = analytics.state.dimensions();
+
+    for (var index in dimensions) {
+      var dimension = dimensions[index];
+
+      if (!dimension.aggregated()) {
+
+        // members to filters = slice || filters if set and on a dimension != X & Y
+        var members = Object.keys(dimension.getLastSlice());
+        if (!dimension.equals(dimensionX) && !dimension.equals(dimensionY) && dimension.getLastFilters().length)
+          members = dimension.getLastFilters();
+
+        analytics.query.slice(dimension.hierarchy(), members);
+      }
+    }
+    analytics.query.dice([dimensionX.hierarchy(), dimensionY.hierarchy()]);
+
+    // set measure
+    analytics.query.push(measure.id());
+
+    // get data
+    var data = analytics.query.execute();
+    return data.map(function (d) { return d[measure.id()]; });
+  }
+
   // importTest "data-test-accessors.js"
 
   return _data;

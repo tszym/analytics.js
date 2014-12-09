@@ -229,7 +229,7 @@ analytics.state = (function() {
   };
 
   /**
-  ### state.**rollUp**(*data.dimension* dimension, [*int* nbLevels=1])
+  #### state.**rollUp**(*data.dimension* dimension, [*int* nbLevels=1])
 
   Roll up on the given dimension, optionally `nbLevels` times, and reload data.
   **/
@@ -249,6 +249,29 @@ analytics.state = (function() {
       // reload data
       analytics.data.load();
     }
+  };
+
+  /**
+  ### Freeze domains
+
+  These two functions allow you to freeze the domain of the dimensions, for a filtering across a given dimension. **Use case:** play the timeline.
+
+  * state.**freezeDomainsAcross**(*data.dimension* dimension)
+  * state.**unfreezeDomains**()
+  ***/
+
+  state.freezeDomainsAcross = function (dimension) {
+    _dimensions.forEach(function (d) {
+      if (!d.equals(dimension)) {
+        d.freezeDomainAccross(dimension);
+      }
+    });
+  };
+
+  state.unfreezeDomains = function() {
+    _dimensions.forEach(function (d) {
+      d.unfreezeDomain();
+    });
   };
 
   function getState() {

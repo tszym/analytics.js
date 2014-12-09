@@ -6,6 +6,8 @@ _data.isClientSideAggrPossible = isClientSideAggrPossible;
 _data.setCrossfilterData = setCrossfilterData;
 _data.getDataClientAggregates = getDataClientAggregates;
 _data.getDataServerAggregates = getDataServerAggregates;
+_data.getValues2DClient = getValues2DClient;
+_data.getValues2DServer = getValues2DServer;
 
 _data.reset = function () {
   _data = {};

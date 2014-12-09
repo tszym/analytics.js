@@ -259,8 +259,8 @@ analytics.display = (function() {
       update the interface accordingly.
   * display.**_displayDimensionParamsForm**(*data.dimension* dimension) : show the form allowing to change the configuration of the given dimension
   * display.**updateDimension(*data.dimension* dimension, *Object* options) : modify the given dimension with the given options
-  * display.**freezeColorScales**()
-  * display.**unfreezeColorScales**()
+  * display.**freezeScalesAcross**(*data.dimension* dimension) : freeze charts across a dimension
+  * display.**unfreezeScales**() : cancel **freezeScalesAcross**
   **/
   display._displayParamsForm = function (chart, create) {
 
@@ -513,16 +513,6 @@ analytics.display = (function() {
     }
   }
 
-  var _frozenColorScales = false;
-
-  display.freezeColorScales = function () {
-    _frozenColorScales = true;
-  };
-
-  display.unfreezeColorScales = function () {
-    _frozenColorScales = false;
-  };
-
   display.aggregateDimension = function (dimension, aggregate) {
     dimension.aggregated(aggregate);
     display.getChartsUsingDimension(dimension).forEach(function (chart) {
@@ -596,6 +586,22 @@ analytics.display = (function() {
     display.redraw();
   }
 
+  display.freezeScalesAcross = function (dimension) {
+    analytics.state.freezeDomainsAcross(dimension);
+    display.charts().forEach(function (chart) {
+      chart.elasticAxes(false);
+    });
+    display.render();
+  };
+
+  display.unfreezeScales = function () {
+    analytics.state.unfreezeDomains();
+    display.charts().forEach(function (chart) {
+      chart.elasticAxes(true);
+    });
+    display.render();
+  };
+
   /**
   ### Charts' filters
 
@@ -660,9 +666,7 @@ analytics.display = (function() {
     }
 
     display.charts().forEach(function (chart) { chart.updateTitle(); });
-    if (!_frozenColorScales) {
-      display.charts().forEach(function (chart) { chart.updateColors(); });
-    }
+    display.charts().forEach(function (chart) { chart.updateColors(); });
   };
 
   /**

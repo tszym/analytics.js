@@ -29,16 +29,19 @@ analytics.charts.bar = (function () {
         .transitionDuration(500)
         .centerBar(false)
         .gap(1)
-        .elasticY(true)
+
         .elasticX(true);
     };
 
     _chart._updateChartSpecific = function () {
-      var metadata = _chart.dimensions()[0].getLastSlice();
+      var dimension = _chart.dimensions()[0];
+      var metadata = dimension.getLastSlice();
 
       var format = d3.format(".3s");
       _chart.element()
         .x(d3.scale.ordinal().domain(d3.keys(metadata)))
+
+
         .xUnits(dc.units.ordinal)
         .title(function (d) {
           var key = d.key ? d.key : d.data.key;
@@ -47,6 +50,14 @@ analytics.charts.bar = (function () {
         });
       _chart.element().xAxis().tickFormat(function(d) {return metadata[d].caption;});
       _chart.element().yAxis().tickFormat(function(d) { return format(d);});
+
+      if (_chart.elasticAxes()) {
+        _chart.element().elasticY(true);
+      }
+      else {
+        _chart.element().elasticY(false)
+          .y(d3.scale.linear().domain([0, dimension.domain()[1]]).range([_chart.element().yAxisHeight(), 0]));
+      }
     };
 
     return _chart;

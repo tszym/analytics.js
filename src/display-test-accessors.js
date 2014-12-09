@@ -2,7 +2,6 @@ display._nextChartId = function () { return _nextChartId; };
 display._charts = function () { return _charts; };
 display._resizableColumns = function () { return _resizableColumns; };
 display._savedColumnWidths = function () { return _savedColumnWidths; };
-display._frozenColorScales = function () { return _frozenColorScales; };
 display.getColumn = getColumn;
 display.getChartPosition = getChartPosition;
 display.insertChart = insertChart;
@@ -25,5 +24,4 @@ display.reset = function () {
   _nextChartId = 0;
   _resizableColumns = undefined;
   _savedColumnWidths = undefined;
-  _frozenColorScales = false;
 };

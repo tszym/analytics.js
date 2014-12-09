@@ -29,10 +29,6 @@ analytics.charts.bubble = (function () {
 
         .margins({top: 0, right: 0, bottom: 30, left: 45})
 
-        .elasticY(true)
-        .elasticX(true)
-        .elasticRadius(true)
-
         .renderHorizontalGridLines(true)
         .renderVerticalGridLines(true)
 
@@ -56,15 +52,12 @@ analytics.charts.bubble = (function () {
         .valueAccessor(function (p)       { return p.value[measures[1].id()]; })
         .radiusValueAccessor(function (p) { return p.value[measures[2].id()]; })
 
-        .x(d3.scale.linear().domain(_chart._niceDomain(cfGroup, measures[0].id())))
-        .y(d3.scale.linear().domain(_chart._niceDomain(cfGroup, measures[1].id())))
-        .r(d3.scale.linear().domain(_chart._niceDomain(cfGroup, measures[2].id())))
+        .x(d3.scale.linear().domain(dimension.domainWithPadding(extraMeasures, measures[0], 0.20))).xAxisPadding('20%')
+        .y(d3.scale.linear().domain(dimension.domainWithPadding(extraMeasures, measures[1], 0.15))).yAxisPadding('15%')
+        .r(d3.scale.linear().domain(dimension.domain           (extraMeasures, measures[2]      )))
 
         .xAxisLabel(measures[0].caption())
         .yAxisLabel(measures[1].caption())
-
-        .xAxisPadding(_chart._niceDomain(cfGroup, measures[0].id())[0]*0.1)
-        .yAxisPadding(_chart._niceDomain(cfGroup, measures[1].id())[0]*0.1)
 
         .minRadiusWithLabel(14)
 
@@ -72,13 +65,20 @@ analytics.charts.bubble = (function () {
           var key = d.key ? d.key : d.data.key;
           if (metadata[key] === undefined) return (d.value ? format(d.value) : '');
           var out = dimension.caption() + ': ' + (metadata[key] ? metadata[key].caption : '') + "\n" +
-                    measures[0].caption() + ": " + (d.value[measures[0].id()] ? format(d.value[measures[0].id()]) : 0) + "\n";
+                    measures[0].caption() + ': ' + (d.value[measures[0].id()] ? format(d.value[measures[0].id()]) : 0) + '\n';
           if (!measures[1].equals(measures[0]))
-            out +=  measures[1].caption() + ": " + (d.value[measures[1].id()] ? format(d.value[measures[1].id()]) : 0) + "\n";
+            out +=  measures[1].caption() + ': ' + (d.value[measures[1].id()] ? format(d.value[measures[1].id()]) : 0) + '\n';
           if (!measures[2].equals(measures[0]) && !measures[2].equals(measures[1]))
-            out +=  measures[2].caption() + ": " + (d.value[measures[2].id()] ? format(d.value[measures[2].id()]) : 0) + "\n";
+            out +=  measures[2].caption() + ': ' + (d.value[measures[2].id()] ? format(d.value[measures[2].id()]) : 0) + '\n';
           return out;
         });
+
+      if (_chart.elasticAxes()) {
+        _chart.element().elasticX(true).elasticY(true).elasticRadius(true);
+      }
+      else {
+        _chart.element().elasticX(false).elasticY(false).elasticRadius(false);
+      }
     };
 
     return _chart;

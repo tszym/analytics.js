@@ -73,17 +73,6 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
     return _properties;
   };
 
-  _dimension.currentLevel = function() {
-    if (!_aggregated)
-      return _stack.length - 1;
-    else
-      return 0;
-  };
-
-  _dimension.maxLevel = function() {
-    return _levels.length - 1;
-  };
-
   _dimension.getGeoProperty = function () {
     for (var i in _properties) {
       if (_properties[i].type() == "Geometry")
@@ -118,6 +107,9 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
     return _dimension;
   };
 
+  _dimension.equals = function (other) {
+    return (typeof other.id == "function") && (_id === other.id());
+  };
 
   /**
   ### Drill-down / roll-up
@@ -161,18 +153,11 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   * *boolean* data.dimension.**isDrillPossible**()
   * *boolean* data.dimension.**isRollPossible**()
   * *int* data.dimension.**nbRollPossible**() : number of roll we can do
+  * *mixed* data.dimension.**isPartialDrillDown**(*boolean* isPartialDrillDown) : do we did a partial drill-down on this dimension
   **/
 
   _dimension.membersStack = function () {
     return _stack.map(function (level) { return level.members; });
-  };
-
-  _dimension.filtersStack = function () {
-    return _stack.map(function (level) { return level.filters; });
-  };
-
-  _dimension.equals = function (other) {
-    return (typeof other.id == "function") && (_id === other.id());
   };
 
   _dimension.addSlice = function (members) {
@@ -189,16 +174,19 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
     return _dimension.getSlice(_stack.length - 1);
   };
 
-  _dimension.getLastFilters = function () {
-    return _dimension.getFilters(_stack.length - 1);
-  };
-
   _dimension.getSlice = function (level) {
     return _stack[level].members;
   };
 
-  _dimension.getFilters = function (level) {
-    return _stack[level].filters;
+  _dimension.currentLevel = function() {
+    if (!_aggregated)
+      return _stack.length - 1;
+    else
+      return 0;
+  };
+
+  _dimension.maxLevel = function() {
+    return _levels.length - 1;
   };
 
   _dimension.isDrillPossible = function () {
@@ -227,11 +215,27 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
 
   Filters on the dimensions are handled by the following functions:
 
-  * *mixed* data.dimension.**filters**([*string[]* filters]) : get of set filtered members (identified by their ids)
+  * *string[][]* data.dimension.**filtersStack**()
+  * *string[]* data.dimension.**getLastFilters**()
+  * *string[]* data.dimension.**getFilters**(*int* level)
+  * *mixed* data.dimension.**filters**([*string[]* filters]) : get or set last filters
   * *this* data.dimension.**filter**(*string* element, *boolean* add) : add (`add = true`) or remove (`add = false`) an element from the filters
   * *this* data.dimension.**addFilter**(*string* element)
   * *this* data.dimension.**removeFilter**(*string* element)
   **/
+
+  _dimension.filtersStack = function () {
+    return _stack.map(function (level) { return level.filters; });
+  };
+
+  _dimension.getLastFilters = function () {
+    return _dimension.getFilters(_stack.length - 1);
+  };
+
+  _dimension.getFilters = function (level) {
+    return _stack[level].filters;
+  };
+
   _dimension.filters = function (filters) {
     if (!arguments.length) return _dimension.getLastFilters();
     _stack[_stack.length - 1].filters = filters;
@@ -268,6 +272,13 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
       palette to use for this dimension.
   * *nbBins* data.dimension.**nbbins**(*int* nb) : get or set the number of bins of the color scale.
   * *d3.scale* data.dimension.**scale**() : get the d3 scale of the dimension
+  * *float[]* data.dimension.**values**([*data.measure[]* measuresToLoad, *data.measure* measureToUse]) : get the values of the dimension for a given measure
+      useful to compute colors (quantiles for example).
+  * *[float, float]* data.dimension.**domain**([*data.measure[]* measuresToLoad, *data.measure* measureToUse]) : get the extent of the values of the dimension
+  * *[float, float]* data.dimension.**domainWithPadding**(*float* paddingPercent, [*data.measure[]* measuresToLoad, *data.measure* measureToUse]) : get the extent
+      of the values of the dimension with a padding added
+  * *this* data.dimension.**freezeDomainAccross**(*data.dimension* otherDimension) : freeze the scale for a filtering across a given dimension
+  * *this* data.dimension.**unfreezeDomain**() : unfreeze the scale
   **/
   _dimension.colors = function () {
     return colorbrewer[_colorPalette][_nbBins];
@@ -306,24 +317,62 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
 
       case 'natural':
       return d3.scale.threshold()
-        .domain(ss.jenks(_dimension.crossfilterGroup().all().map(function(d) { return d.value; }), _nbBins).splice(1, _nbBins - 1))
+        .domain(ss.jenks(_dimension.values(), _nbBins).splice(1, _nbBins - 1))
         .range(_dimension.colors());
 
       case 'quantize':
-
-      var min = _dimension.crossfilterGroup().order(function (d) { return -d; }).top(1)[0].value;
-      var max = _dimension.crossfilterGroup().order(function (d) { return  d; }).top(1)[0].value;
-
       return d3.scale.quantize()
-        .domain([min, max])
+        .domain(_dimension.domain())
         .range(_dimension.colors());
 
       case 'quantile':
-
       return d3.scale.quantile()
-        .domain(_dimension.crossfilterGroup().all().map(function(d) { return d.value; }))
+        .domain(_dimension.values())
         .range(_dimension.colors());
     }
+  };
+
+  var _values = {};
+  _dimension.values = function (measuresToLoad, measureToUse) {
+    // unfrozen: values 1D
+    if (_frozenAcross === null) {
+      return _dimension
+        .crossfilterGroup(measuresToLoad)
+        .all()
+        .map(function(d) { return measuresToLoad ? d.value[measureToUse] : d.value; });
+    }
+    // frozen: values 2D
+    else {
+      measureToUse = measureToUse || analytics.state.measure();
+      if (_values[measureToUse.id()] === undefined) {
+        _values[measureToUse.id()] = analytics.data.getValues2D(_dimension, _frozenAcross, measureToUse);
+      }
+      return _values[measureToUse.id()];
+    }
+  };
+
+  _dimension.domain = function (measuresToLoad, measureToUse) {
+    return d3.extent(_dimension.values(measuresToLoad, measureToUse));
+  };
+
+  _dimension.domainWithPadding = function (paddingPercent, measuresToLoad, measureToUse) {
+    var domain = _dimension.domain(measuresToLoad, measureToUse);
+    var extent = domain[1] - domain[0];
+    domain[0] = domain[0] - paddingPercent * extent;
+    domain[1] = domain[1] + paddingPercent * extent;
+    return domain;
+  };
+
+  var _frozenAcross = null;
+  _dimension.freezeDomainAccross = function (otherDimension) {
+    _frozenAcross = otherDimension;
+    return _dimension;
+  };
+
+  _dimension.unfreezeDomain = function () {
+    _frozenAcross = null;
+    _values = {};
+    return _dimension;
   };
 
   /**
@@ -334,6 +383,8 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   * *crossfilter.dimension* data.dimension.**crossfilterDimension**()
   * *crossfilter.group* data.dimension.**crossfilterGroup**([*data.measure[]* extraMeasures]) :
     get a crossfilter group, optionally with extra measures (see data.getCrossfilterGroup for more details)
+  * *this* data.dimension.**filterAccordingToState**() : filter the crossfilter dimension according to filters
+    stored in the dimension
   * *float* data.dimension.**getTotal**() : returns the total for the selected members of the dimension
   **/
   _dimension.crossfilterDimension = function () {
@@ -342,6 +393,20 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
 
   _dimension.crossfilterGroup = function (extraMeasures) {
     return analytics.data.getCrossfilterGroup(_dimension, extraMeasures);
+  };
+
+  _dimension.filterAccordingToState = function () {
+    var filters = _dimension.getLastFilters();
+    if (filters !== undefined && filters.length) {
+      _dimension.crossfilterDimension().filterFunction(function (d) {
+        for(var i = 0; i < filters.length; i++) {
+          if (filters[i] == d)
+            return true;
+        }
+        return false;
+      });
+    }
+    return _dimension;
   };
 
   _dimension.getTotal = function () {
