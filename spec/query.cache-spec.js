@@ -15,6 +15,11 @@ describe('analytics.query.cache', function() {
   var captionHierarchy = 'Nuts';
   var descriptionHierarchy = 'Nuts desc';
 
+  var idLevel = 'nuts0';
+  var indexLevel = 0;
+  var captionLevel = 'Nuts0';
+  var descriptionLevel = 'Nuts0 desc';
+
   beforeEach(function() {
     analytics.query.cache.clearCache();
   });
@@ -105,6 +110,41 @@ describe('analytics.query.cache', function() {
 
     it('should throw an error when the given dimension is not in the cache', function () {
       expect(function () {analytics.query.cache._isHierarchiesListEmpty(idSchema, idCube, 'NoDimension');}).toThrow();
+    });
+  });
+
+  describe('isLevelsListEmpty', function () {
+    beforeEach(function() {
+      analytics.query.cache.cacheSchema(idSchema, captionSchema);
+      analytics.query.cache.cacheCube(idSchema, idCube, captionCube, descriptionCube);
+      analytics.query.cache.cacheDimension(idSchema, idCube, idDimension, typeDimension, captionDimension, descriptionDimension);
+    });
+
+    it('should be true when no level has been cached', function () {
+      analytics.query.cache.cacheHierarchy(idSchema, idCube, idDimension, idHierarchy, captionHierarchy, descriptionHierarchy);
+      expect(analytics.query.cache._isLevelsListEmpty(idSchema, idCube, idDimension, idHierarchy)).toBe(true);
+    });
+
+    it('should be false when one level has been cached', function () {
+      analytics.query.cache.cacheHierarchy(idSchema, idCube, idDimension, idHierarchy, captionHierarchy, descriptionHierarchy);
+      analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, idLevel, captionLevel, descriptionLevel);
+      expect(analytics.query.cache._isLevelsListEmpty(idSchema, idCube, idDimension, idHierarchy)).toBe(false);
+    });
+
+    it('should throw an error when the given schema is not in the cache', function () {
+      expect(function () {analytics.query.cache._isLevelsListEmpty('NoSchema', 'NoCube', 'NoDimension', 'NoHierarchy');}).toThrow();
+    });
+
+    it('should throw an error when the given cube is not in the cache', function () {
+      expect(function () {analytics.query.cache._isLevelsListEmpty(idSchema, 'NoCube', 'NoDimension', 'NoHierarchy');}).toThrow();
+    });
+
+    it('should throw an error when the given dimension is not in the cache', function () {
+      expect(function () {analytics.query.cache._isLevelsListEmpty(idSchema, idCube, 'NoDimension', 'NoHierarchy');}).toThrow();
+    });
+
+    it('should throw an error when the given hierarchy is not in the cache', function () {
+      expect(function () {analytics.query.cache._isLevelsListEmpty(idSchema, idCube, idDimension, 'NoHierarchy');}).toThrow();
     });
   });
 
@@ -317,6 +357,74 @@ describe('analytics.query.cache', function() {
         analytics.query.cache.cacheHierarchy(idSchema, idCube, idDimension, idHierarchy, captionHierarchy, descriptionHierarchy);
         expect(analytics.query.cache.isHierarchyInCache(idSchema, idCube, idDimension, idHierarchy)).toBe(true);
         expect(analytics.query.cache.isHierarchyInCache(idSchema, idCube, idDimension, 'a hierarchy id')).toBe(false);
+      });
+    });
+  });
+
+  describe('about levels', function () {
+    beforeEach(function() {
+      analytics.query.cache.cacheSchema(idSchema, captionSchema);
+      analytics.query.cache.cacheCube(idSchema, idCube, captionCube, descriptionCube);
+      analytics.query.cache.cacheDimension(idSchema, idCube, idDimension, typeDimension, captionDimension, descriptionDimension);
+      analytics.query.cache.cacheHierarchy(idSchema, idCube, idDimension, idHierarchy, captionHierarchy, descriptionHierarchy);
+    });
+
+    describe('cacheLevel', function () {
+      it('should cache a level that can be retrieved from there', function () {
+        analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, idLevel, captionLevel, descriptionLevel);
+        expect(analytics.query.cache.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, idLevel)).toBe(true);
+
+        var expected = [captionLevel];
+        expect(analytics.query.cache.getLevelsFromCache(idSchema, idCube, idDimension, idHierarchy)).toEqual(expected);
+      });
+
+      it('should not override an already cached level', function () {
+        analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, idLevel, captionLevel, descriptionLevel);
+        analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, idLevel, 'Other caption Level', descriptionLevel);
+        expect(analytics.query.cache.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, idLevel)).toBe(true);
+        expect(analytics.query.cache.getLevelsFromCache(idSchema, idCube, idDimension, idHierarchy)[0]).toEqual(captionLevel);
+        expect(analytics.query.cache.getLevelsFromCache(idSchema, idCube, idDimension, idHierarchy)[1]).not.toBeDefined();
+      });
+
+      it('should cache a not already cached level', function () {
+        analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, idLevel, captionLevel, descriptionLevel);
+        analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, 'OtherLevel', 'Other caption', 'Other level desc');
+
+        var expected = [captionLevel, 'Other caption'];
+        expect(analytics.query.cache.getLevelsFromCache(idSchema, idCube, idDimension, idHierarchy)).toEqual(expected);
+      });
+    });
+
+    describe('getLevelsFromCache', function () {
+      it('should give an empty array when asked for levels with void hierarchy', function () {
+        expect(analytics.query.cache.getLevelsFromCache(idSchema, idCube, idDimension, idHierarchy)).toEqual([]);
+      });
+    });
+
+    describe('isLevelInCache', function () {
+      it('can tell wether a level is cached or not with the level id', function () {
+        analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, idLevel, captionLevel, descriptionLevel);
+        expect(analytics.query.cache.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, idLevel)).toBe(true);
+        expect(analytics.query.cache.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, 'a Level id')).toBe(false);
+      });
+
+      it('can tell wether a level is cached or not with the level index', function () {
+        analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, idLevel, captionLevel, descriptionLevel);
+        expect(analytics.query.cache.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, 0)).toBe(true);
+        expect(analytics.query.cache.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, 1)).toBe(false);
+      });
+    });
+
+    describe('getLevelIDFromIndex', function () {
+      it('should give the ID of the level based on its index', function () {
+        analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, idLevel, captionLevel, descriptionLevel);
+        analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, 'OtherLevel', 'Other caption', 'Other level desc');
+        expect(analytics.query.cache.getLevelIDFromIndex(idSchema, idCube, idDimension, idHierarchy, indexLevel)).toBe(idLevel);
+        expect(analytics.query.cache.getLevelIDFromIndex(idSchema, idCube, idDimension, idHierarchy, 1)).toBe('OtherLevel');
+      });
+
+      it('should throw an error when the level does not exists', function () {
+        expect(function () {analytics.query.cache.getLevelIDFromIndex(idSchema, idCube, idDimension, idHierarchy, indexLevel); }).toThrow();
       });
     });
   });

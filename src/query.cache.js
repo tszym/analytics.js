@@ -44,6 +44,7 @@ analytics.query.cache = (function () {
   * *boolean* query.cache.**isCubeInCache**(*string* idSchema, *string* idCube)
   * *boolean* query.cache.**isDimensionInCache**(*string* idSchema, *string* idCube, *string* idDimension)
   * *boolean* query.cache.**isHierarchyInCache**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy)
+  * *boolean* query.cache.**isLevelInCache**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, (*integer* indexLevel | *string* idLevel))
   **/
 
   _cache.isCacheEmpty = function() {
@@ -89,6 +90,25 @@ analytics.query.cache = (function () {
     for (var key in _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies) {
       if(key == idHierarchy)
         return true;
+    }
+    return false;
+  };
+
+  _cache.isLevelInCache = function (idSchema, idCube, idDimension, idHierarchy, indexLevel) {
+    var levels = _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels;
+
+    if (isLevelsListEmpty(idSchema, idCube, idDimension, idHierarchy)) {
+      return false;
+    }
+
+    if (typeof indexLevel === 'string') {
+      for (var level in levels) {
+        if (levels[level].id === indexLevel) {
+          return true;
+        }
+      }
+    } else {
+      return levels[indexLevel] !== undefined;
     }
     return false;
   };
@@ -195,6 +215,34 @@ analytics.query.cache = (function () {
   };
 
   /**
+  #### *Array<string>* query.cache.**getLevelsFromCache**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy)
+
+  Retrieve the list of levels from the cache as an array of strings
+  or [] if the cache is empty.
+  It propagates an error when no schema, cube, dimension or hierarchy is found
+  in the cache with the given id.
+
+  ```js
+  [
+    'captionLevelA',
+    'captionLevelB'
+  ]
+  ```
+  **/
+  _cache.getLevelsFromCache = function(idSchema, idCube, idDimension, idHierarchy) {
+    if (isLevelsListEmpty(idSchema, idCube, idDimension, idHierarchy))
+      return [];
+    else {
+      var out = [];
+      var levels = _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels;
+      for (var index=0; index < levels.length; index++) {
+        out[index] = levels[index].caption;
+      }
+      return out;
+    }
+  };
+
+  /**
   ### Storage functions
 
   The following functions insert elements in the cache.
@@ -205,6 +253,8 @@ analytics.query.cache = (function () {
   * query.cache.**cacheCube**(*string* idSchema, *string* idCube, *string* caption, *string* description)
   * query.cache.**cacheDimension**(*string* idSchema, *string* idCube, *string* idDimension, *string* type, *string* caption, *string* description)
   * query.cache.**cacheHierarchy**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *string* caption, *string* description)
+  * query.cache.**cacheLevel**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *string* idLevel, *string* caption, *string* description)
+  * *boolean* query.cache.**getLevelIDFromIndex**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *integer* indexLevel)
   **/
 
   _cache.cacheSchema = function(id, caption) {
@@ -247,6 +297,32 @@ analytics.query.cache = (function () {
       dimension.hierarchies[idHierarchy] = {'caption' : caption, 'description' : description};
     }
   };
+
+  _cache.cacheLevel = function(idSchema, idCube, idDimension, idHierarchy, idLevel, caption, description) {
+    if (!_cache.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, idLevel)) {
+      var hierarchy = _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy];
+      if (hierarchy.levels === undefined) {
+        hierarchy.levels = [];
+      }
+
+      hierarchy.levels.push({'id' : idLevel, 'caption' : caption, 'description': description});
+    }
+  };
+
+  /**
+  ### *boolean* query.cache.**getLevelIDFromIndex**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *integer* indexLevel)
+
+  Get the level's ID from its index
+  It throws an error when no schema, cube, dimension, hierarchy or level
+  are found in the cache with the given identifiers.
+  **/
+  _cache.getLevelIDFromIndex = function (idSchema, idCube, idDimension, idHierarchy, indexLevel) {
+    if (!_cache.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel))
+      throw 'The level you tried to use does not exists in the database!';
+
+    return _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels[indexLevel].id;
+  };
+
 
   /**
   ### Private functions
@@ -323,6 +399,22 @@ analytics.query.cache = (function () {
 
     var dimension = _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension];
     return (dimension.hierarchies === undefined) || (Object.keys(dimension.hierarchies).length === 0);
+  }
+
+  /**
+  ### *boolean* **isLevelsListEmpty**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy)
+
+  Defines if the given cached hierarchy contains levels.
+  It throws an error when no schema, cube, dimension or hierarchy are found in
+  the cache with the given id.
+  **/
+  function isLevelsListEmpty (idSchema, idCube, idDimension, idHierarchy) {
+    if (!_cache.isHierarchyInCache(idSchema, idCube, idDimension, idHierarchy)) {
+      throw 'The hierarchy you tried to use does not exists in the database!';
+    }
+
+    var hierarchy = _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy];
+    return (hierarchy.levels === undefined) || (hierarchy.levels.length === 0);
   }
 
   // importTest "query.cache-test-accessors.js"
