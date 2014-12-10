@@ -787,6 +787,7 @@ analytics.display = (function() {
       charts[i].build();
     }
     filterChartsAsDimensionsState();
+    $('.tooltip').remove();
   }
 
   display.render = function () {
