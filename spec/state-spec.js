@@ -82,7 +82,7 @@ describe('analytics.state', function() {
 
       var dimension = analytics.state.dimensions()[0];
 
-      analytics.state.drillDown(dimension, getTestsResults().dimension0.toDrillAll, "selected");
+      analytics.state.drillDown(dimension, getTestsResults().dimension0.toDrill, "selected");
 
       expect(dimension.currentLevel()).toBe(1);
       expect(Object.keys(dimension.getLastSlice())).toEqual(getTestsResults().dimension0.members1All);
@@ -94,7 +94,7 @@ describe('analytics.state', function() {
       analytics.state.rollUp(dimension);
 
       dimension.filters(getTestsResults().dimension0.toDrillMulti);
-      analytics.state.drillDown(dimension, getTestsResults().dimension0.toDrillMulti, "selected");
+      analytics.state.drillDown(dimension, getTestsResults().dimension0.toDrill, "selected");
 
       expect(dimension.currentLevel()).toBe(1);
       expect(Object.keys(dimension.getLastSlice())).toEqual(getTestsResults().dimension0.members1Multi);

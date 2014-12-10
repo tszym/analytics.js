@@ -94,7 +94,7 @@ function getTestsResults() {
     'dimension0' : {
       geoProp : "Geom",
       members : ["BE", "DE", "NL", "LU", "UK"],
-      toDrill : ["BE"],
+      toDrill : "BE",
       toDrillAll : ["BE", "DE", "NL", "LU", "UK"],
       toDrillMulti : ["BE", "UK"],
       members1 : ["BE1", "BE2", "BE3"],
