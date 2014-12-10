@@ -19,11 +19,12 @@ analytics.charts.bar = (function () {
 
     _chart._initChartSpecific = function () {
       _chart.element()
-        .margins({top: 10, right: 10, bottom: 125, left: 40})
+        .margins({top: 10, right: 10, bottom: 110, left: 40})
         .renderlet(function (chart) {
                     chart.selectAll("g.x text")
-                      .attr('dx', '-50')
-                      .attr('transform', "translate(-20,0)")
+                      .attr('dx', '-6')
+                      .attr('dy', '0')
+                      .style('text-anchor', 'end')
                       .attr('transform', "rotate(-50)");
                 })
         .transitionDuration(500)

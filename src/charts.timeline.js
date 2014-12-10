@@ -18,8 +18,15 @@ analytics.charts.timeline = (function () {
       return "timeline";
     };
 
+    var superInitChartSpecific = _chart._initChartSpecific;
+    _chart._initChartSpecific = function () {
+      superInitChartSpecific();
+      _chart.element().margins({top: 10, right: 10, bottom: 58, left: 40});
+    };
+
     return _chart;
   };
+
 
   timelineChart.options = {
     sort            : null,
