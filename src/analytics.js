@@ -98,13 +98,19 @@ analytics.init = function (queryAPI, state) {
 };
 
 analytics.setCsts = function (csts) {
-  function setCstsRec (cstsObject, toAdd) {
+  function setCstsRec(cstsObject, toAdd, force) {
     for (var cstKey in toAdd) {
       var typeOld = Array.isArray(cstsObject[cstKey]) ? 'array' : typeof cstsObject[cstKey];
       var typeNew = Array.isArray(toAdd[cstKey]) ? 'array' : typeof toAdd[cstKey];
 
-      if (typeOld == 'object' && typeNew == 'object') {
-        setCstsRec(cstsObject[cstKey], toAdd[cstKey]);
+      if (cstKey == 'tips')
+        force = true;
+
+      if (force && typeOld == 'undefined' && typeNew != 'undefined') {
+        cstsObject[cstKey] = toAdd[cstKey];
+      }
+      else if (typeOld == 'object' && typeNew == 'object') {
+        setCstsRec(cstsObject[cstKey], toAdd[cstKey], force);
       }
       else if (typeof typeOld != 'undefined' && typeof typeOld != 'object' && typeNew != 'undefined' && typeNew != 'object') {
         cstsObject[cstKey] = toAdd[cstKey];
@@ -112,7 +118,7 @@ analytics.setCsts = function (csts) {
     }
   }
 
-  setCstsRec (analytics.csts, csts);
+  setCstsRec(analytics.csts, csts, false);
 };
 
 // importTest "analytics-test-accessors.js"
