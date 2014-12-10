@@ -601,7 +601,7 @@ analytics.charts.chart = (function () {
   charts_chart_nostatic.options = {
     sort            : null,
     labels          : null,
-    playerTimeout   : 300,
+    playerTimeout   : 1000,
     height          : 300,
     heightReference : "px"
   };
