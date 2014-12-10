@@ -20,6 +20,11 @@ describe('analytics.query.cache', function() {
   var captionLevel = 'Nuts0';
   var descriptionLevel = 'Nuts0 desc';
 
+  var idProperty = 'Geom';
+  var captionProperty = 'La Geometrie';
+  var descriptionProperty = 'Geom desc';
+  var typeProperty = 'Geometry';
+
   beforeEach(function() {
     analytics.query.cache.clearCache();
   });
@@ -145,6 +150,46 @@ describe('analytics.query.cache', function() {
 
     it('should throw an error when the given hierarchy is not in the cache', function () {
       expect(function () {analytics.query.cache._isLevelsListEmpty(idSchema, idCube, idDimension, 'NoHierarchy');}).toThrow();
+    });
+  });
+
+  describe('isPropertiesListEmpty', function () {
+    beforeEach(function() {
+      analytics.query.cache.cacheSchema(idSchema, captionSchema);
+      analytics.query.cache.cacheCube(idSchema, idCube, captionCube, descriptionCube);
+      analytics.query.cache.cacheDimension(idSchema, idCube, idDimension, typeDimension, captionDimension, descriptionDimension);
+      analytics.query.cache.cacheHierarchy(idSchema, idCube, idDimension, idHierarchy, captionHierarchy, descriptionHierarchy);
+    });
+
+    it('should be true when no property has been cached', function () {
+      analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, idLevel, captionLevel, descriptionLevel);
+      expect(analytics.query.cache._isPropertiesListEmpty(idSchema, idCube, idDimension, idHierarchy, indexLevel)).toBe(true);
+    });
+
+    it('should be false when one property has been cached', function () {
+      analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, idLevel, captionLevel, descriptionLevel);
+      analytics.query.cache.cacheProperty(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty, captionProperty, descriptionProperty, typeProperty);
+      expect(analytics.query.cache._isPropertiesListEmpty(idSchema, idCube, idDimension, idHierarchy, indexLevel)).toBe(false);
+    });
+
+    it('should throw an error when the given schema is not in the cache', function () {
+      expect(function () {analytics.query.cache._isPropertiesListEmpty('NoSchema', 'NoCube', 'NoDimension', 'NoHierarchy', 1);}).toThrow();
+    });
+
+    it('should throw an error when the given cube is not in the cache', function () {
+      expect(function () {analytics.query.cache._isPropertiesListEmpty(idSchema, 'NoCube', 'NoDimension', 'NoHierarchy', 1);}).toThrow();
+    });
+
+    it('should throw an error when the given dimension is not in the cache', function () {
+      expect(function () {analytics.query.cache._isPropertiesListEmpty(idSchema, idCube, 'NoDimension', 'NoHierarchy', 1);}).toThrow();
+    });
+
+    it('should throw an error when the given hierarchy is not in the cache', function () {
+      expect(function () {analytics.query.cache._isPropertiesListEmpty(idSchema, idCube, idDimension, 'NoHierarchy', 1);}).toThrow();
+    });
+
+    it('should throw an error when the given level is not in the cache', function () {
+      expect(function () {analytics.query.cache._isPropertiesListEmpty(idSchema, idCube, idDimension, idHierarchy, 1);}).toThrow();
     });
   });
 
@@ -425,6 +470,74 @@ describe('analytics.query.cache', function() {
 
       it('should throw an error when the level does not exists', function () {
         expect(function () {analytics.query.cache.getLevelIDFromIndex(idSchema, idCube, idDimension, idHierarchy, indexLevel); }).toThrow();
+      });
+    });
+  });
+
+  // property
+
+  describe('about properties', function () {
+    beforeEach(function() {
+      analytics.query.cache.cacheSchema(idSchema, captionSchema);
+      analytics.query.cache.cacheCube(idSchema, idCube, captionCube, descriptionCube);
+      analytics.query.cache.cacheDimension(idSchema, idCube, idDimension, typeDimension, captionDimension, descriptionDimension);
+      analytics.query.cache.cacheHierarchy(idSchema, idCube, idDimension, idHierarchy, captionHierarchy, descriptionHierarchy);
+      analytics.query.cache.cacheLevel(idSchema, idCube, idDimension, idHierarchy, idLevel, captionLevel, descriptionLevel);
+    });
+
+    describe('cacheProperty', function () {
+      it('should cache a property that can be retrieved from there', function () {
+        analytics.query.cache.cacheProperty(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty, captionProperty, descriptionProperty, typeProperty);
+        expect(analytics.query.cache.isPropertyInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty)).toBe(true);
+
+        var expected = {
+          'Geom' : {
+            caption : captionProperty,
+            description : descriptionProperty,
+            type : typeProperty
+          }
+        };
+        expect(analytics.query.cache.getPropertiesFromCache(idSchema, idCube, idDimension, idHierarchy, indexLevel)).toEqual(expected);
+      });
+
+      it('should not override an already cached property', function () {
+        analytics.query.cache.cacheProperty(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty, captionProperty, descriptionProperty, typeProperty);
+        analytics.query.cache.cacheProperty(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty, 'Other caption Property', descriptionProperty, typeProperty);
+        expect(analytics.query.cache.isPropertyInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty)).toBe(true);
+        expect(analytics.query.cache.getPropertiesFromCache(idSchema, idCube, idDimension, idHierarchy, indexLevel).Geom.caption).toEqual(captionProperty);
+      });
+
+      it('should cache a not already cached property', function () {
+        analytics.query.cache.cacheProperty(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty, captionProperty, descriptionProperty, typeProperty);
+        analytics.query.cache.cacheProperty(idSchema, idCube, idDimension, idHierarchy, indexLevel, 'OtherProperty', 'Other caption', 'Other prop desc', typeProperty);
+
+        var expected = {
+          'Geom' : {
+            caption : captionProperty,
+            description : descriptionProperty,
+            type : typeProperty
+          },
+          'OtherProperty' : {
+            caption : 'Other caption',
+            description : 'Other prop desc',
+            type : typeProperty
+          }
+        };
+        expect(analytics.query.cache.getPropertiesFromCache(idSchema, idCube, idDimension, idHierarchy, indexLevel)).toEqual(expected);
+      });
+    });
+
+    describe('getPropertiesFromCache', function () {
+      it('should give an empty set when asked for properties with void level', function () {
+        expect(analytics.query.cache.getPropertiesFromCache(idSchema, idCube, idDimension, idHierarchy, indexLevel)).toEqual({});
+      });
+    });
+
+    describe('isPropertyInCache', function () {
+      it('can tell wether a property is cached or not', function () {
+        analytics.query.cache.cacheProperty(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty, captionProperty, descriptionProperty, typeProperty);
+        expect(analytics.query.cache.isPropertyInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty)).toBe(true);
+        expect(analytics.query.cache.isPropertyInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel, 'a Property id')).toBe(false);
       });
     });
   });

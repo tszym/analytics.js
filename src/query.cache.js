@@ -45,6 +45,7 @@ analytics.query.cache = (function () {
   * *boolean* query.cache.**isDimensionInCache**(*string* idSchema, *string* idCube, *string* idDimension)
   * *boolean* query.cache.**isHierarchyInCache**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy)
   * *boolean* query.cache.**isLevelInCache**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, (*integer* indexLevel | *string* idLevel))
+  * *boolean* query.cache.**isPropertyInCache**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *integer* indexLevel, *string* idProperty)
   **/
 
   _cache.isCacheEmpty = function() {
@@ -109,6 +110,18 @@ analytics.query.cache = (function () {
       }
     } else {
       return levels[indexLevel] !== undefined;
+    }
+    return false;
+  };
+
+  _cache.isPropertyInCache = function (idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty) {
+    if (isPropertiesListEmpty(idSchema, idCube, idDimension, idHierarchy, indexLevel))
+      return false;
+
+    var properties = _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels[indexLevel].properties;
+    for (var key in properties) {
+      if(key == idProperty)
+        return true;
     }
     return false;
   };
@@ -243,6 +256,36 @@ analytics.query.cache = (function () {
   };
 
   /**
+  #### *Object* query.cache.**getPropertiesFromCache**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *integer* indexLevel)
+
+  Retrieve the list of properties from the cache as a map
+  or {} if the cache is empty.
+  It propagates an error when no schema, cube, dimension, hierarchy or level is found
+  in the cache with the given id.
+
+  ```js
+  {
+    'geom' : {
+      'caption' : 'Geom',
+      'description' : 'Geom desc',
+      'type' : 'Geometry'
+    },
+    'surf' : {
+      'caption' : 'Surface',
+      'description' : 'Surface desc',
+      'type' : 'Standard'
+    }
+  }
+  ```
+  **/
+  _cache.getPropertiesFromCache = function(idSchema, idCube, idDimension, idHierarchy, indexLevel) {
+    if (isPropertiesListEmpty(idSchema, idCube, idDimension, idHierarchy, indexLevel))
+      return {};
+    else
+      return _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels[indexLevel].properties;
+  };
+
+  /**
   ### Storage functions
 
   The following functions insert elements in the cache.
@@ -254,6 +297,7 @@ analytics.query.cache = (function () {
   * query.cache.**cacheDimension**(*string* idSchema, *string* idCube, *string* idDimension, *string* type, *string* caption, *string* description)
   * query.cache.**cacheHierarchy**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *string* caption, *string* description)
   * query.cache.**cacheLevel**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *string* idLevel, *string* caption, *string* description)
+  * query.cache.**cacheProperty**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *integer* indexLevel, *string* idProperty, *string* caption, *string* description, *string* type)
   * *boolean* query.cache.**getLevelIDFromIndex**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *integer* indexLevel)
   **/
 
@@ -306,6 +350,16 @@ analytics.query.cache = (function () {
       }
 
       hierarchy.levels.push({'id' : idLevel, 'caption' : caption, 'description': description});
+    }
+  };
+
+  _cache.cacheProperty = function(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty, caption, description, type) {
+    if (!_cache.isPropertyInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel, idProperty)) {
+      var level = _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels[indexLevel];
+      if (level.properties === undefined)
+        level.properties = {};
+
+      level.properties[idProperty] = {'caption' : caption, 'description': description, 'type' : type};
     }
   };
 
@@ -415,6 +469,22 @@ analytics.query.cache = (function () {
 
     var hierarchy = _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy];
     return (hierarchy.levels === undefined) || (hierarchy.levels.length === 0);
+  }
+
+  /**
+  ### *boolean* **isPropertiesListEmpty**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *integer* indexLevel)
+
+  Defines if the given cached level contains properties.
+  It throws an error when no schema, cube, dimension, hierarchy or level
+  are found in the cache with the given identifiers.
+  **/
+  function isPropertiesListEmpty (idSchema, idCube, idDimension, idHierarchy, indexLevel) {
+    if (!_cache.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel)) {
+      throw 'The hierarchy you tried to use does not exists in the database!';
+    }
+
+    var properties = _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels[indexLevel].properties;
+    return (properties === undefined) || (Object.keys(properties).length === 0);
   }
 
   // importTest "query.cache-test-accessors.js"
