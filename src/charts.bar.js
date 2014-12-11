@@ -22,10 +22,8 @@ analytics.charts.bar = (function () {
         .margins({top: 10, right: 10, bottom: 110, left: 40})
         .renderlet(function (chart) {
                     chart.selectAll("g.x text")
-                      .attr('dx', '-6')
-                      .attr('dy', '0')
-                      .style('text-anchor', 'end')
-                      .attr('transform', "rotate(-50)");
+                      .attr('transform', "rotate(-50) translate(-6 0)")
+                      .style('text-anchor', 'end');
                 })
         .transitionDuration(500)
         .centerBar(false)
