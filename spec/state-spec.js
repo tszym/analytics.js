@@ -1,8 +1,10 @@
 describe('analytics.state', function() {
 
-  // before all
-  analytics.reset();
-  analytics.query.queryAPI(getQueryAPI());
+  beforeEach(function () {
+    analytics.reset();
+    analytics.query.cache.clearCache();
+    analytics.query.queryAPI(getQueryAPI());
+  });
 
   describe('initMeasure', function() {
     it('should load a schema, cube and measure', function() {
@@ -17,6 +19,7 @@ describe('analytics.state', function() {
 
   describe('initDimensions', function() {
     it('should load dimensions and slice those dimensions', function() {
+      analytics.state.initMeasure();
       analytics.state.initDimensions();
 
       var dimensions = analytics.state.dimensions();
@@ -33,6 +36,8 @@ describe('analytics.state', function() {
 
   describe('drillDown simple', function() {
     it('should add a slice to the dimension', function() {
+      analytics.state.initMeasure();
+      analytics.state.initDimensions();
 
       var dimension = analytics.state.dimensions()[0];
 
@@ -43,6 +48,8 @@ describe('analytics.state', function() {
     });
 
     it('should not be able to drill when at last level', function() {
+      analytics.state.initMeasure();
+      analytics.state.initDimensions();
 
       var dimension = analytics.state.dimensions()[0];
       dimension._levels([dimension._levels()[0], dimension._levels()[1]]); // limit virtually to 2 levels
@@ -56,9 +63,13 @@ describe('analytics.state', function() {
 
   describe('rollUp', function() {
     it('should come 1 level back', function() {
+      analytics.state.initMeasure();
+      analytics.state.initDimensions();
 
       var dimension = analytics.state.dimensions()[0];
 
+      analytics.state.drillDown(dimension, getTestsResults().dimension0.toDrill, "simple");
+      expect(dimension.currentLevel()).toBe(1);
       analytics.state.rollUp(dimension);
 
       expect(dimension.currentLevel()).toBe(0);
@@ -66,6 +77,8 @@ describe('analytics.state', function() {
     });
 
     it('should not be able to roll when at first level', function() {
+      analytics.state.initMeasure();
+      analytics.state.initDimensions();
 
       var dimension = analytics.state.dimensions()[0];
 
@@ -79,6 +92,8 @@ describe('analytics.state', function() {
   describe('drillDown selected', function() {
 
     it('should drill down on all members if nothing selected', function() {
+      analytics.state.initMeasure();
+      analytics.state.initDimensions();
 
       var dimension = analytics.state.dimensions()[0];
 
@@ -89,9 +104,11 @@ describe('analytics.state', function() {
     });
 
     it('should drill down on the selected members if some selected', function() {
+      analytics.state.initMeasure();
+      analytics.state.initDimensions();
 
       var dimension = analytics.state.dimensions()[0];
-      analytics.state.rollUp(dimension);
+      //analytics.state.rollUp(dimension);
 
       dimension.filters(getTestsResults().dimension0.toDrillMulti);
       analytics.state.drillDown(dimension, getTestsResults().dimension0.toDrill, "selected");
@@ -101,8 +118,11 @@ describe('analytics.state', function() {
     });
   });
 
-  // after all
-  analytics.reset();
+  afterEach(function () {
+    analytics.reset();
+    analytics.query.cache.clearCache();
+  });
+
 
   /*
   describe('getState', function() {
