@@ -308,7 +308,7 @@ analytics.display = (function() {
     }
 
     // Add dimensions & measures to selects
-    dimensionsSelects.empty().append('<option value=""></option>');
+    dimensionsSelects.empty();
     measuresSelects  .empty().append('<option value=""></option>');
 
     var dimension, measure;
