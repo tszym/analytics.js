@@ -121,6 +121,7 @@ analytics.charts.map = (function () {
   map.options = {
     sort            : null,
     height          : 0.7,
+    hideUnfiltered  : null,
     heightReference : 'columnHeightRatio'
   };
 

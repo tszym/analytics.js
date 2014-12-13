@@ -58,5 +58,9 @@ analytics.charts.wordcloudWithLegend = (function () {
     displayParams : false
   };
 
+  wordcloudChart.options = {
+    hideUnfiltered : null
+  };
+
   return analytics.charts.chart.extend(wordcloudChart);
 })();

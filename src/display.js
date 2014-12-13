@@ -279,31 +279,32 @@ analytics.display = (function() {
       measuresMap[measureId] = analytics.data.measure(measureId, measures[measureId].caption);
     }
 
-    var sortSelect             = $('#chartparam-sort');
-    var typeSelect             = $('#chartparam-type');
-    var playerTimeoutSelect    = $('#chartparam-playerTimeout');
-    var labelChoiceSelect      = $('#chartparam-labelChoice');
-    var dimensionsSelects      = $('.chartparam-dimension');
-    var measuresSelects        = $('.chartparam-measure');
-    var sortContainer          = sortSelect         .parent().parent();
-    var playerTimeoutContainer = playerTimeoutSelect.parent().parent();
-    var labelChoiceContainer   = labelChoiceSelect  .parent().parent();
-    var dimensionsContainers   = dimensionsSelects  .parent().parent();
-    var measuresContainers     = measuresSelects    .parent().parent();
+    var type              = $('#chartparam-type');
+    var dimensionsSelects = $('.chartparam-dimension');
+    var measuresSelects   = $('.chartparam-measure');
+    var labels            = $('#chartparam-labels');
+    var sort              = $('#chartparam-sort');
+    var hideUnfiltered    = $('#chartparam-hideUnfiltered');
+    var topK              = $('#chartparam-topK');
+    var topKMeasure       = $('#chartparam-topKMeasure');
+    var playerTimeout     = $('#chartparam-playerTimeout');
 
-    // hide all
-    sortContainer         .hide();
-    playerTimeoutContainer.hide();
-    labelChoiceContainer  .hide();
-    dimensionsContainers  .hide();
-    measuresContainers    .hide();
+    // get containers & hide by default
+    var dimensionsContainers    = dimensionsSelects.parent().parent().hide();
+    var measuresContainers      = measuresSelects  .parent().parent().hide();
+    var labelsContainer         = labels           .parent().parent().hide();
+    var sortContainer           = sort             .parent().parent().hide();
+    var hideUnfilteredContainer = hideUnfiltered   .parent().parent().hide();
+    var topKContainer           = topK             .parent().parent().hide();
+    var topKMeasureContainer    = topKMeasure      .parent().parent().hide();
+    var playerTimeoutContainer  = playerTimeout    .parent().parent().hide();
 
     // add chart types once
-    if (!typeSelect.children('option').length) {
+    if (!type.children('option').length) {
       for (var chartType in analytics.charts) {
         if (chartType != 'chart' && typeof analytics.charts[chartType].params != 'undefined' && analytics.charts[chartType].params.displayParams === true) {
           var caption = analytics.csts.txts.charts[chartType] ? analytics.csts.txts.charts[chartType] : chartType;
-          typeSelect.append('<option value="'+chartType+'">'+caption+'</option>');
+          type.append('<option value="'+chartType+'">'+caption+'</option>');
         }
       }
     }
@@ -321,10 +322,13 @@ analytics.display = (function() {
     }
 
     // autoset infos
-    typeSelect.val(chart.type());
-    sortSelect.val(options.sort);
-    playerTimeoutSelect.val(options.playerTimeout);
-    labelChoiceSelect.prop("checked", options.labels === false ? "" : "checked");
+    type.val(chart.type());
+    sort.val(options.sort);
+    playerTimeout.val(options.playerTimeout);
+    labels.prop("checked", options.labels === false ? "" : "checked");
+    hideUnfiltered.prop("checked", options.hideUnfiltered === true ? "checked" : "");
+    topK.val(options.topK === Infinity ? "0" : options.topK);
+
     dimensionsSelects.each(function(i, el) {
       var dimension = chart.dimensions()[i];
       if (dimension)
@@ -335,14 +339,17 @@ analytics.display = (function() {
       if (measure)
         $(el).val(measure.id());
     });
+    topKMeasure.val(options.topKMeasure ? options.topKMeasure.id() : "");
 
     // update form dynamically depending on type
     function updateForm(chartType, duration) {
+      function showOrHide(container, bool) {
+        if (bool) container.slideDown(duration);
+        else      container.slideUp(duration);
+      }
+
       var nbDims            = analytics.charts[chartType].params.nbDimensionsMax;
       var nbMes             = analytics.charts[chartType].params.nbExtraMeasuresMax;
-      var showSort          = analytics.charts[chartType].options.sort !== null;
-      var showPlayerTimeout = analytics.charts[chartType].params.displayPlay;
-      var showLabelChoice   = analytics.charts[chartType].options.labels !== null;
 
       // show dimensions & measures
       dimensionsContainers.slice(0, nbDims).slideDown(duration);
@@ -350,21 +357,13 @@ analytics.display = (function() {
       dimensionsContainers.slice(nbDims).slideUp(duration);
       measuresContainers  .slice(nbMes) .slideUp(duration);
 
-      // show sort container
-      if (showSort)
-        sortContainer.slideDown(duration);
-      else
-        sortContainer.slideUp(duration);
-
-      if (showPlayerTimeout)
-        playerTimeoutContainer.slideDown(duration);
-      else
-        playerTimeoutContainer.slideUp(duration);
-
-      if (showLabelChoice)
-        labelChoiceContainer.slideDown(duration);
-      else
-        labelChoiceContainer.slideUp(duration);
+      // show fields
+      showOrHide(playerTimeoutContainer,  analytics.charts[chartType].params.displayPlay);
+      showOrHide(sortContainer,           analytics.charts[chartType].options.sort           !== null);
+      showOrHide(labelsContainer,         analytics.charts[chartType].options.labels         !== null);
+      showOrHide(hideUnfilteredContainer, analytics.charts[chartType].options.hideUnfiltered !== null);
+      showOrHide(topKContainer,           analytics.charts[chartType].options.topK           !== null);
+      showOrHide(topKMeasureContainer,    analytics.charts[chartType].options.topKMeasure    !== null);
 
       // disable impossibles dimensions & measures
       dimensionsSelects.children('option').removeAttr('disabled');
@@ -378,21 +377,24 @@ analytics.display = (function() {
           measuresSelects.children('option[value="'+measuresMap[measure].id()+'"]').attr('disabled', 'disabled');
       }
     }
-    updateForm(typeSelect.val(), 0);
+    updateForm(type.val(), 0);
 
-    typeSelect.change(function() { updateForm($(this).val(), 400); });
+    type.change(function() { updateForm($(this).val(), 400); });
 
     // set callback for save
     $('#chartparams-set').unbind('click').click(function() {
       $('#chartparams').modal('hide');
 
       var options = {
-        dimensions    : [],
-        measures      : [],
-        sort          : sortSelect.val(),
-        type          : typeSelect.val(),
-        labels        : labelChoiceSelect.prop("checked"),
-        playerTimeout : playerTimeoutSelect.val(),
+        dimensions     : [],
+        measures       : [],
+        sort           : sort.val(),
+        type           : type.val(),
+        hideUnfiltered : hideUnfiltered.prop("checked"),
+        topK           : topK.val(),
+        topKMeasure    : measuresMap[topKMeasure.val()],
+        labels         : labels.prop("checked"),
+        playerTimeout  : playerTimeout.val(),
       };
       dimensionsSelects.each(function(i, el) {
         var dimension = dimensionsMap[$(el).val()];
@@ -450,6 +452,11 @@ analytics.display = (function() {
       new PNotify('Invalid axes selected');
       return;
     }
+    if (analytics.charts[options.type].options.topKMeasure !== null &&
+        analytics.utils.indexOf(options.measures, options.topKMeasure) < 0) {
+      new PNotify('Invalid measure for top k (it is not used on the chart)');
+      return;
+    }
 
     // chart type change = new chart
     if (chart.type() != options.type) {
@@ -471,23 +478,35 @@ analytics.display = (function() {
       loadData = true;
     }
 
-    // sort order allowed & changed
-    if (analytics.charts[options.type].options.sort !== null && chart.options().sort != options.sort) {
-      chart.setOption("sort", options.sort);
-      doRedraw = true;
+    // set various options
+    function setOption(option, doRenderRedraw, regulate, param) {
+      if (param && !analytics.charts[options.type].params[param] ||
+         !param && analytics.charts[options.type].options[option] === null ||
+          chart.options()[option] == options[option])
+        return false;
+      if (regulate)
+        options[option] = regulate(options[option]);
+      chart.setOption(option, options[option]);
+      if (doRenderRedraw == "render")
+        doRender = true;
+      else if (doRenderRedraw == "redraw")
+        doRedraw = true;
+      return true;
     }
 
-    // show labels
-    if (analytics.charts[options.type].options.labels !== null && chart.options().labels != options.labels) {
-      chart.setOption("labels", options.labels);
-      doRender = true;
-    }
-
-    if (analytics.charts[options.type].params.displayPlay && chart.options().playerTimeout != options.playerTimeout) {
-      if (options.playerTimeout < 50)
-        options.playerTimeout = 50;
-      chart.setOption("playerTimeout", options.playerTimeout);
-    }
+    setOption("sort", "redraw");
+    setOption("labels", "render");
+    setOption("playerTimeout", "", function(d) { d = parseInt(d); return (isNaN(d) || d < 50) ? 50 : d; }, "displayPlay");
+    setOption("hideUnfiltered", "redraw", function (d) {
+      var dimension = chart.dimensions()[0];
+      if (d === true && !dimension.filters().length) {
+        dimension.filters(Object.keys(dimension.getLastSlice()));
+        filterChartAsDimensionState(chart);
+      }
+      return d;
+    });
+    setOption("topK", "redraw", function(d) { d = parseInt(d); return (isNaN(d) || d <= 0) ? Infinity : d; });
+    setOption("topKMeasure", "redraw");
 
     // Update display
     if (loadData) {

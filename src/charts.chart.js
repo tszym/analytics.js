@@ -361,6 +361,11 @@ analytics.charts.chart = (function () {
       if (_chart.options().labels !== null) {
         _chart.element().renderLabel(_chart.options().labels);
       }
+
+      // hide unfiltered
+      if (_chart.options().hideUnfiltered !== null) {
+        _chart.element().dataHideUnfiltered(_chart.options().hideUnfiltered);
+      }
     }
 
     function displayChartMetaContainer () {
@@ -601,6 +606,9 @@ analytics.charts.chart = (function () {
   charts_chart_nostatic.options = {
     sort            : null,
     labels          : null,
+    hideUnfiltered  : false,
+    topK            : null,
+    topKMeasure     : null,
     playerTimeout   : 1000,
     height          : 300,
     heightReference : "px"
