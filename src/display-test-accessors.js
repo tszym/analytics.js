@@ -14,7 +14,6 @@ display.initButtons = initButtons;
 display.initResize = initResize;
 display.resize = resize;
 display.rebuild = rebuild;
-display.arraysEquals = arraysEquals;
 
 display.reset = function () {
   display.charts().forEach(function(chart) {

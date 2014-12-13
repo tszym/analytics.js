@@ -629,7 +629,7 @@ analytics.charts.chart = (function () {
       var _chart = chartConstructor(selector, dimensions);
       // add as non static all static variables & functions
       _chart._params                          = chartConstructor.params;
-      _chart._options                         = JSON.parse(JSON.stringify(chartConstructor.options));
+      _chart._options                         = analytics.utils.cloneObject(chartConstructor.options);
       _chart.isPossibleDimension              = _newChartConstructor.isPossibleDimension;
       _chart.isPossibleExtraMeasure           = _newChartConstructor.isPossibleExtraMeasure;
       _chart.arePossibleDimensions            = _newChartConstructor.arePossibleDimensions;
@@ -677,14 +677,14 @@ analytics.charts.chart = (function () {
     // coy static maps options & params that are not overriden
     var key;
     if (typeof chartConstructor.params == 'undefined')
-      chartConstructor.params = JSON.parse(JSON.stringify(charts_chart_nostatic.params));
+      chartConstructor.params = analytics.utils.cloneObject(charts_chart_nostatic.params);
     else
       for (key in charts_chart_nostatic.params)
         if (typeof chartConstructor.params[key] == 'undefined')
           chartConstructor.params[key] = charts_chart_nostatic.params[key];
 
     if (typeof chartConstructor.options == 'undefined')
-      chartConstructor.options = JSON.parse(JSON.stringify(charts_chart_nostatic.options));
+      chartConstructor.options = analytics.utils.cloneObject(charts_chart_nostatic.options);
     else
       for (key in charts_chart_nostatic.options)
         if (typeof chartConstructor.options[key] == 'undefined')

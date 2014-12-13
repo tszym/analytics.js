@@ -273,11 +273,7 @@ analytics.display = (function() {
     var measures   = analytics.query.getMesures(schema, cube);
     var geoDimId   = analytics.query.getGeoDimension(schema, cube);
 
-    // TODO extract creation of dimensionsMap to analytics.utils
-    var dimensionsMap = {};
-    dimensions.forEach(function (dimension) {
-      dimensionsMap[dimension.id()] = dimension;
-    });
+    var dimensionsMap = analytics.utils.createMapFromArray(dimensions);
     var measuresMap = {};
     for (var measureId in measures) {
       measuresMap[measureId] = analytics.data.measure(measureId, measures[measureId].caption);
@@ -462,14 +458,14 @@ analytics.display = (function() {
     }
 
     // new dimensions
-    if (!arraysEquals(options.dimensions, chart.dimensions())) {
+    if (!analytics.utils.arraysEquals(options.dimensions, chart.dimensions())) {
       chart.dimensions(options.dimensions);
       doRedraw = true;
       doFilter = true;
     }
 
     // new measures
-    if (!arraysEquals(options.measures, chart.extraMeasures())) {
+    if (!analytics.utils.arraysEquals(options.measures, chart.extraMeasures())) {
       chart.extraMeasures(options.measures);
       doRedraw = true;
       loadData = true;
@@ -874,18 +870,6 @@ analytics.display = (function() {
       display.redraw();
     }
   };
-
-  // compare two arrays of objects having .equals() method
-  function arraysEquals(array1, array2) {
-    if (array1.length != array2.length)
-      return false;
-
-    for (var i in array1)
-      if (!array1[i].equals(array2[i]))
-        return false;
-
-    return true;
-  }
 
   // importTest "display-test-accessors.js"
 
