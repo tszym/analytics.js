@@ -825,10 +825,72 @@ dc.baseMixin = function (_chart) {
     **/
     _chart.data = function (d) {
         if (!arguments.length) {
-            return _data.call(_chart, _group);
+            var data = _data.call(_chart, _group);
+            if (_chart.dataHideUnfiltered())
+                data = _chart._dataHideUnfiltered(data);
+            if (_chart.dataFilterTop() > 0 && _chart.dataFilterTop() < Infinity)
+                data = _chart._dataFilterTop(data);
+            return data;
         }
         _data = d3.functor(d);
         _chart.expireCache();
+        return _chart;
+    };
+
+    _chart._dataHideUnfiltered = function(data) {
+        if (_filters.length)
+            return data.filter(function(d) { return d.key === undefined || _filters.indexOf(d.key) >= 0; });
+        else
+            return data;
+    };
+
+    _chart._dataFilterTop = function(data) {
+        try {
+            var dataTemp = data.slice(0).sort(function(a, b) { return _dataFilterTopAccessor(b) - _dataFilterTopAccessor(a); });
+            return dataTemp.slice(0, _dataFilterTop);
+        }
+        catch (e) {
+            return data;
+        }
+    };
+
+    /**
+    #### .dataHideUnfiltered([boolean])
+    Indicates if we want to hide unfiltered elements of the dimension from the chart.
+
+    **Default:** false.
+    **/
+    var _dataHideUnfiltered = false;
+    _chart.dataHideUnfiltered = function (_) {
+        if (!arguments.length) return _dataHideUnfiltered;
+        _dataHideUnfiltered = _;
+        return _chart;
+    };
+
+    /**
+    #### .dataFilterTop([k])
+    Set the number *k* of elements we will show on the chart. It looks like the cap mixin but other
+    elements are not aggregated in an "Others" group, they are hidden.
+
+    **Default:** Infinity.
+    **/
+    var _dataFilterTop = Infinity;
+    _chart.dataFilterTop = function (k) {
+        if (!arguments.length) return _dataFilterTop;
+        _dataFilterTop = k;
+        return _chart;
+    };
+
+    /**
+    #### ._dataFilterTopAccessor([function])
+    Function to access the value used for the `.dataFilterTop` function.
+
+    **Default:** `function(d) { return _chart.valueAccessor()(d); };`
+    **/
+    var _dataFilterTopAccessor = function(d) { return _chart.valueAccessor()(d); };
+    _chart.dataFilterTopAccessor = function (_) {
+        if (!arguments.length) return _dataFilterTopAccessor;
+        _dataFilterTopAccessor = _;
         return _chart;
     };
 
@@ -1959,13 +2021,13 @@ dc.colorMixin = function (_chart) {
         tdColor.exit().remove();
         tdColor
             .html("&nbsp;")
-            .attr("style",function(d){
+            .attr("style",function(d) {
                 var begin = !isNaN(_colors.invertExtent(d)[0]) ? _colors.invertExtent(d)[0] : min;
                 var end   = !isNaN(_colors.invertExtent(d)[1]) ? _colors.invertExtent(d)[1] : max;
                 var currentExtent = end - begin;
                 return "width: "+100*(currentExtent/extent)+"%; background-color: "+d;
             })
-            .attr("title",function(d, i){
+            .attr("title",function(d, i) {
                 var begin = !isNaN(_colors.invertExtent(d)[0]) ? _colors.invertExtent(d)[0] : min;
                 var end   = !isNaN(_colors.invertExtent(d)[1]) ? _colors.invertExtent(d)[1] : max;
                 return _formatLegendNumber(begin)+"-"+_formatLegendNumber(end);
@@ -3380,6 +3442,23 @@ dc.stackMixin = function (_chart) {
         return layers.length ? _chart.stackLayout()(layers) : [];
     });
 
+    _chart._dataHideUnfiltered = function(data) {
+        var filters = _chart.filters();
+        if (!filters.length)
+            return data;
+        else {
+            return data.map(function(layer) {
+                layer.values = layer.values.filter(function(d) { return d.data.key === undefined || filters.indexOf(d.data.key) >= 0; });
+                return layer;
+            });
+        }
+    };
+
+    // TODO
+    _chart._dataFilterTop = function(data) {
+        return data;
+    };
+
     _chart._ordinalXDomain = function () {
         return flattenStack().map(dc.pluck('x'));
     };
@@ -3477,6 +3556,10 @@ dc.capMixin = function (_chart) {
             return topRows;
         }
     });
+
+    _chart._dataFilterTop = function(data) {
+        return data;
+    };
 
     /**
     #### .cap([count])
@@ -3801,12 +3884,13 @@ dc.wheelMixin = function(_chart) {
             alt   : d3.event.altKey,
             shift : d3.event.shiftKey
         }
+
+        // on zoomIn-out
         if (!disabledActions.mousewheel && zoomIn && (d3.event.deltaY < 0 || d3.event.wheelDeltaY > 0 || d3.event.deltaX < 0 || d3.event.wheelDeltaX > 0) && _chart._callbackZoomIn !== undefined) {
             delayAction('mousewheel', 1500);
             _chart._zoomIn(d, keys);
         }
 
-        // on zoomIn-out
         else if (!disabledActions.mousewheel && zoomOut && (d3.event.deltaY > 0 || d3.event.wheelDeltaY < 0 || d3.event.deltaX > 0 || d3.event.wheelDeltaX < 0) && _chart._callbackZoomOut !== undefined) {
             delayAction('mousewheel', 1500);
             _chart._zoomOut();
@@ -5370,13 +5454,37 @@ dc.dataTable = function (parent, chartGroup) {
     function nestEntries() {
         var entries = _chart.dimension().top(_size);
 
-        return d3.nest()
+        var data = d3.nest()
             .key(_chart.group())
             .sortKeys(_order)
             .entries(entries.sort(function (a, b) {
                 return _order(_sortBy(a), _sortBy(b));
             }));
+
+        if (_chart.dataHideUnfiltered())
+            data = _chart._dataHideUnfiltered(data);
+        if (_chart.dataFilterTop() > 0 && _chart.dataFilterTop() < Infinity)
+            data = _chart._dataFilterTop(data);
+
+        return data;
     }
+
+    _chart._dataHideUnfiltered = function(data) {
+        var filters = _chart.filters();
+        if (!filters.length)
+            return data;
+        else {
+            return data.map(function(layer) {
+                layer.values = layer.values.filter(function(d) { return d.key === undefined || filters.indexOf(d.key) >= 0; });
+                return layer;
+            });
+        }
+    };
+
+    // TODO
+    _chart._dataFilterTop = function(data) {
+        return data;
+    };
 
     function renderRows(groups) {
         var rows = groups.order()
@@ -7020,6 +7128,7 @@ dc.geoChoroplethChart = function (parent, chartGroup) {
             .transition()
             .duration(transition)
             .style("stroke-width", 1.5 / scale + "px")
+            .style("stroke", "white")
             .attr("transform", "translate(" + translate + ") scale(" + scale + ") ");
     }
 
@@ -8338,6 +8447,14 @@ dc.numberDisplay = function (parent, chartGroup) {
         var valObj = group.value ? group.value() : group.top(1)[0];
         return _chart.valueAccessor()(valObj);
     });
+
+    _chart._dataHideUnfiltered = function(data) {
+        return data;
+    };
+
+    _chart._dataFilterTop = function(data) {
+        return data;
+    };
 
     _chart.transitionDuration(250); // good default
 
