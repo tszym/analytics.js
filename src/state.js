@@ -66,6 +66,8 @@ analytics.state = (function() {
       state.measure(measure);
 
       _dimensions = [];
+      analytics.data.dimension.nextI = 0;
+      dc.filterAll();
       state.initDimensions();
       analytics.data.load();
       analytics.display.render();
