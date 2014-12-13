@@ -308,7 +308,7 @@ analytics.charts.chart = (function () {
       // color chart
       if (typeof _chart.element().colors == 'function') {
         _chart.element()
-          .colorCalculator(function (d) { return d.value ? _chart.element().colors()(d.value) : '#ccc'; });
+          .colorCalculator(function (d) { return isNaN(d.value) ? '#ccc' : _chart.element().colors()(d.value); });
       }
     }
 
