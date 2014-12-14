@@ -37,7 +37,7 @@ analytics.charts.wordcloudWithLegend = (function () {
     };
 
     _chart._initContainerSpecific = function () {
-      $(_chart.selector()).append('<div class="wordcloud-legend"></div><div class="btn-dimparams-container"><span class="btn-dimparams btn btn-xs btn-default"><i class="fa fa-nomargin fa-cog"></i></span></div>');
+      $(_chart.selector()).append('<div class="wordcloud-hidden-info"></div><div class="wordcloud-legend"></div><div class="btn-dimparams-container"><span class="btn-dimparams btn btn-xs btn-default"><i class="fa fa-nomargin fa-cog"></i></span></div>');
 
       $(_chart.selector() + ' .btn-dimparams').click(function() {
         analytics.display._displayDimensionParamsForm(_chart.dimensions()[0]);
@@ -49,6 +49,11 @@ analytics.charts.wordcloudWithLegend = (function () {
         $(_chart.selector() + ' .chart-title').prepend('<i class="fa fa-chevron-right"></i>');
       else
         $(_chart.selector() + ' .chart-title').prepend('<i class="fa fa-chevron-down"></i>');
+
+      if (_chart.dimensions()[0].hideUnfiltered())
+        $(_chart.selector() + ' .wordcloud-hidden-info').addClass('alert alert-warning').html('<i class="fa fa-warning"></i>' + analytics.csts.txts.hideUnfilteredWarning);
+      else
+        $(_chart.selector() + ' .wordcloud-hidden-info').removeClass('alert alert-warning').empty();
     };
 
     return _chart;

@@ -68,7 +68,8 @@ var analytics = {
       hiddenChart : 'This chart is hidden because the dimension shown is aggregated',
       changeCube : 'You are changing the cube beeing studied. If you continue, your current analysis of this cube will be lost. Do you want to continue?',
       jenksWarnTitle : 'Jenk\'s natural breaks replaced by quantiles',
-      jenksWarnText: 'Jenk\'s natural breaks can\'t be used on this dimension because it needs the dimension to have more members than bins on the scale.'
+      jenksWarnText: 'Jenk\'s natural breaks can\'t be used on this dimension because it needs the dimension to have more members than bins on the scale.',
+      hideUnfilteredWarning : 'Unfiltered elements of this dimension are hidden from charts.'
     },
     tips : {
       charts : {}
