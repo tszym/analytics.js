@@ -14,6 +14,9 @@ analytics.data = (function() {
   // *analytics.data.dimension[]* list of measures loaded
   var _dimensionsLoaded = [];
 
+  // *Map<string,int>* map of level loaded for each dimension
+  var _levelsLoaded = {};
+
   // *crossfilter* crossfilter object containing the dataset
   var _dataCrossfilter;
 
@@ -90,6 +93,7 @@ analytics.data = (function() {
     // set dimensions to get
     var dimensions = analytics.state.dimensions();
     _dimensionsLoaded = [];
+    _levelsLoaded = {};
     var hierachiesList = [];
 
     for (var index in dimensions) {
@@ -99,6 +103,7 @@ analytics.data = (function() {
         var members = dimension.getLastSlice();
         var hierarchy = dimension.hierarchy();
         _dimensionsLoaded.push(dimension);
+        _levelsLoaded[dimension.id()] = dimension.currentLevel();
         hierachiesList.push(hierarchy);
         analytics.query.slice(hierarchy, Object.keys(members));
       }
@@ -135,9 +140,11 @@ analytics.data = (function() {
 
     // set dimensions to get
     var dimensions = analytics.state.dimensions();
+    _levelsLoaded = {};
     _dimensionsLoaded = dimensions.slice();
     for (i in dimensions) {
       var dimension = dimensions[i];
+      _levelsLoaded[dimension.id()] = dimension.currentLevel();
       metadata.dimensions[dimension.id()] = {
         "hierarchy" : dimension.hierarchy(),
         "level" : dimension.currentLevel(),
@@ -204,6 +211,15 @@ analytics.data = (function() {
 
     for (i in dimensionsToLoad) {
       if (dimensionsLoadedIds.indexOf(dimensionsToLoad[i].id()) < 0) {
+        _data.load();
+        return true;
+      }
+    }
+
+    // if we don't have the right levels
+    var dimensions = analytics.state.dimensions();
+    for (i in dimensions) {
+      if (dimensions[i].currentLevel() != _levelsLoaded[dimensions[i].id()]) {
         _data.load();
         return true;
       }
