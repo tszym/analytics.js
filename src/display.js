@@ -763,6 +763,12 @@ analytics.display = (function() {
         display.resize();
       }
     });
+
+    // prevent ctrl + zoom on the page
+    d3.select("body")
+    .on('mousewheel',     function () { if (d3.event.ctrlKey) { d3.event.preventDefault(); }})
+    .on('DOMMouseScroll', function () { if (d3.event.ctrlKey) { d3.event.preventDefault(); }})
+    .on('wheel',          function () { if (d3.event.ctrlKey) { d3.event.preventDefault(); }});
   }
 
   display.init = function () {
