@@ -217,8 +217,10 @@ analytics.display.factSelector = (function () {
 
       element.list = $('<ul '+listClass+'></ul>');
 
-      var useCallback = function() {
-          callback($(this).attr('data-id')); return false;
+      var useCallback = function(e) {
+          callback($(this).attr('data-id'));
+          e.preventDefault();
+          return true;
       };
 
       for (var elID in element.data) {
