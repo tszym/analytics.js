@@ -28,10 +28,6 @@
 	margin: 0;
 }
 
-#wrap {
-	padding: 0px;
-}
-
 #toolbox #resize {
 	margin-right: 5px;
 }
@@ -53,7 +49,6 @@ html, body {
 	width:25%;
 	overflow-x: hidden;
 	overflow-y: auto;
-	background: #F7FDFF;
 	padding-bottom: 30px;
 }
 
@@ -76,7 +71,6 @@ html, body {
 	width:25%;
 	overflow-x: hidden;
 	overflow-y: auto;
-	background: #F7FDFF;
 }
 
 /***** CHARTS *****/
@@ -151,9 +145,24 @@ div.dc-chart {
 	height: 20px;
 }
 
+.wordcloud-hidden-info.alert {
+	margin: 5px;
+	padding:5px 7px 5px 25px;
+	font-size: 90%;
+	line-height: 1.1em;
+	position: relative;
+}
+
+.wordcloud-hidden-info.alert i {
+	position: absolute;
+	left: 7px;
+	top: 5px;
+}
+
 .wordcloud-legend {
 	display: table-cell;
 	width: 100%;
+	font-size: 85%;
 }
 
 .chart-hidden #zoom {
