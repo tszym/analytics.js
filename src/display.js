@@ -284,7 +284,6 @@ analytics.display = (function() {
     var measuresSelects   = $('.chartparam-measure');
     var labels            = $('#chartparam-labels');
     var sort              = $('#chartparam-sort');
-    var hideUnfiltered    = $('#chartparam-hideUnfiltered');
     var topK              = $('#chartparam-topK');
     var topKMeasure       = $('#chartparam-topKMeasure');
     var playerTimeout     = $('#chartparam-playerTimeout');
@@ -294,7 +293,6 @@ analytics.display = (function() {
     var measuresContainers      = measuresSelects  .parent().parent().hide();
     var labelsContainer         = labels           .parent().parent().hide();
     var sortContainer           = sort             .parent().parent().hide();
-    var hideUnfilteredContainer = hideUnfiltered   .parent().parent().hide();
     var topKContainer           = topK             .parent().parent().hide();
     var topKMeasureContainer    = topKMeasure      .parent().parent().hide();
     var playerTimeoutContainer  = playerTimeout    .parent().parent().hide();
@@ -326,7 +324,6 @@ analytics.display = (function() {
     sort.val(options.sort);
     playerTimeout.val(options.playerTimeout);
     labels.prop("checked", options.labels === false ? "" : "checked");
-    hideUnfiltered.prop("checked", options.hideUnfiltered === true ? "checked" : "");
     topK.val(options.topK === Infinity ? "0" : options.topK);
 
     dimensionsSelects.each(function(i, el) {
@@ -361,7 +358,6 @@ analytics.display = (function() {
       showOrHide(playerTimeoutContainer,  analytics.charts[chartType].params.displayPlay);
       showOrHide(sortContainer,           analytics.charts[chartType].options.sort           !== null);
       showOrHide(labelsContainer,         analytics.charts[chartType].options.labels         !== null);
-      showOrHide(hideUnfilteredContainer, analytics.charts[chartType].options.hideUnfiltered !== null);
       showOrHide(topKContainer,           analytics.charts[chartType].options.topK           !== null);
       showOrHide(topKMeasureContainer,    analytics.charts[chartType].options.topKMeasure    !== null);
 
@@ -390,7 +386,6 @@ analytics.display = (function() {
         measures       : [],
         sort           : sort.val(),
         type           : type.val(),
-        hideUnfiltered : hideUnfiltered.prop("checked"),
         topK           : topK.val(),
         topKMeasure    : measuresMap[topKMeasure.val()],
         labels         : labels.prop("checked"),
@@ -497,14 +492,6 @@ analytics.display = (function() {
     setOption("sort", "redraw");
     setOption("labels", "render");
     setOption("playerTimeout", "", function(d) { d = parseInt(d); return (isNaN(d) || d < 50) ? 50 : d; }, "displayPlay");
-    setOption("hideUnfiltered", "redraw", function (d) {
-      var dimension = chart.dimensions()[0];
-      if (d === true && !dimension.filters().length) {
-        dimension.filters(Object.keys(dimension.getLastSlice()));
-        filterChartAsDimensionState(chart);
-      }
-      return d;
-    });
     setOption("topK", "redraw", function(d) { d = parseInt(d); return (isNaN(d) || d <= 0) ? Infinity : d; });
     setOption("topKMeasure", "redraw");
 
@@ -571,6 +558,7 @@ analytics.display = (function() {
     setColor(dimension.colorPalette());
     $('#dimparam-colors-nb').val(dimension.nbBins());
     $('#dimparam-scale').val(dimension.scaleType());
+    $('#dimparam-hideUnfiltered').prop('checked', dimension.hideUnfiltered() ? 'checked' : '');
 
     // set callback for save
     $('#dimparams-set').unbind('click').click(function() {
@@ -582,9 +570,10 @@ analytics.display = (function() {
       var nb = Math.min(Math.max(min, $('#dimparam-colors-nb').val()), max);
 
       var options = {
-        palette : color,
-        number  : nb,
-        scale   : $('#dimparam-scale').val(),
+        palette        : color,
+        number         : nb,
+        hideUnfiltered : $('#dimparam-hideUnfiltered').prop("checked"),
+        scale          : $('#dimparam-scale').val(),
       };
       updateDimension(dimension, options);
     });
@@ -597,6 +586,19 @@ analytics.display = (function() {
     dimension.colorPalette(options.palette);
     dimension.nbBins(options.number);
     dimension.scaleType(options.scale);
+
+    dimension.hideUnfiltered(options.hideUnfiltered);
+    var filterCharts;
+    if (options.hideUnfiltered && !dimension.filters().length) {
+      dimension.filters(Object.keys(dimension.getLastSlice()));
+      filterCharts = true;
+    }
+
+    display.getChartsUsingDimension(dimension).forEach(function (chart) {
+      if (filterCharts)
+        filterChartAsDimensionState(chart);
+      chart.setOption('hideUnfiltered', options.hideUnfiltered);
+    });
 
     display.redraw();
   }

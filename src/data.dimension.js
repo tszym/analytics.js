@@ -256,7 +256,7 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   _dimension.removeFilter = function (element) {
     var _filters = _dimension.getLastFilters();
     if (_filters.indexOf(element) >= 0)
-      _filters.splice(_filters.indexOf(element));
+      _filters.splice(_filters.indexOf(element), 1);
     return _dimension;
   };
 
@@ -279,6 +279,7 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
       of the values of the dimension with a padding added
   * *this* data.dimension.**freezeDomainAccross**(*data.dimension* otherDimension) : freeze the scale for a filtering across a given dimension
   * *this* data.dimension.**unfreezeDomain**() : unfreeze the scale
+  * *mixed* data.dimension.**hideUnfiltered**(*boolean* hideUnfiltered) : hide or show filtered elements of the dimension
   **/
   _dimension.colors = function () {
     return colorbrewer[_colorPalette][_nbBins];
@@ -336,10 +337,11 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   _dimension.values = function (measuresToLoad, measureToUse) {
     // unfrozen: values 1D
     if (_frozenAcross === null) {
-      return _dimension
-        .crossfilterGroup(measuresToLoad)
-        .all()
-        .map(function(d) { return measuresToLoad ? d.value[measureToUse] : d.value; });
+      var data = _dimension.crossfilterGroup(measuresToLoad).all();
+      if (_hideUnfiltered && _dimension.filters().length) {
+        data = data.filter(function (d) { return _dimension.filters().indexOf(d.key) >= 0; });
+      }
+      return data.map(function(d) { return measuresToLoad ? d.value[measureToUse] : d.value; });
     }
     // frozen: values 2D
     else {
@@ -372,6 +374,13 @@ analytics.data.dimension = function (id, caption, description, type, hierarchy, 
   _dimension.unfreezeDomain = function () {
     _frozenAcross = null;
     _values = {};
+    return _dimension;
+  };
+
+  var _hideUnfiltered = false;
+  _dimension.hideUnfiltered = function (hideUnfiltered) {
+    if (!arguments.length) return _hideUnfiltered;
+    _hideUnfiltered = hideUnfiltered;
     return _dimension;
   };
 
