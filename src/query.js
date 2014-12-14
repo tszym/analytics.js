@@ -2,223 +2,23 @@
 ## analytics.**query** namespace
 
 This namespace helps query the OLAP cube by specifying the API provided to it in order to perform the queries.
-
-### getSchemas
-
-Get schemas list
-
-### getCubes
-
-Get cubes of a schema
-
-### getMesures
-
-Get mesures of a cube and a schema
-
-Measures are members of the only level of the only hierarchy of the dimension with type `Measure`
-
-```js
-"idMeasure" : {
-    "caption" : "theMeasure",
-    "unit" : "theUnit"
-}
-```
-
-### getCubesAndMeasures
-
-Get a list of cubes and for each the measures of this cube
-
-### getDimensions
-
-Get dimensions of a cube in a given schema
-
-This wil return a map of id : dimensionMap as the following example
-
-```js
-"idDimension" : {
-    "caption" : "theCaption",
-    "type" : "theType"
-}
-```
-
-### getGeoDimension
-
-Get the id of the geographic dimension
-
-### getTimeDimension
-
-Get the id of the time dimension
-
-### getXXDimension
-
-Get the id of the XXXX dimension
-
-### getGeoProperty
-
-Return the geographical property of a dimension
-
-### getHierarchies
-
-Get the list of hierarchies of a dimension
-
-### getLevels
-
-Get the list of levels of a hierachy. Note that Query hide the real level ID. For Query users, a level is identified by its position in the list.
-
-```js
-[
-  "Countries", //caption of the level at 0 position
-  "Regions"    //caption of the level at 1 position
-]
-```
-
-### getMembers
-
-Get the list of members
-
-If parentMember parameter is not set, returns the map of all members of the specified level with or without the properties values depending on the properties parameter.
-
-If parentMember parameter is set (parentMember being a member of the level idLevel), returns the map of all members descending from this member from the level idlevel + descendingLevel.
-
-Note that Query hide the real level ID. For Query users, a level is identified by its position in the list.
-
-```js
-{
- "FR" : // member key
-   {
-     "caption" : "France",
-     "geometry" : {<geoJSONofFrance>}, // property area value
-     "area" : 123.5 // property area value
-   },
- "BE" :
-   {
-     "caption" : "Belgium",
-     "geometry" : {<geoJSONofBelgium>},
-     "area" : 254.1
-   },
-   ...
-}
-```
-
-### getMembersInfos
-
-Get the list of member objects from their IDs
-
-Note that Query hide the real level ID. For Query users, a level is identified by its position in the list.
-
-```js
-{
- "FR" : // member key
-   {
-     "caption" : "France",
-     "geometry" : {<geoJSONofFrance>}, // property area value
-     "area" : 123.5 // property area value
-   },
- "BE" :
-   {
-     "caption" : "Belgium",
-     "geometry" : {<geoJSONofBelgium>},
-     "area" : 254.1
-   },
-   ...
-}
-```
-
-### getProperties
-
-Get the list of properties of a level
-
-```js
-{
-  "geom" : {
-    "caption" : "Geom",
-    "type" : "Geometry"
-  },
-  "surf" : {
-    "caption" : "Surface",
-    "type" : "Standard"
-  }
-}
-```
-
-### drill
-
-Select a cube
-
-### push
-
-Add a measure to the list of measures you want to get values of.
-
-### pull
-
-Remove a measure from the list.
-
-### slice
-
-Select a list of members from an hierarchy.
-
-### project
-
-Remove the slice set on an hierarchy.
-
-### filter
-
-Apply a filter rule on the members of an hierarchy.
-
-### rank
-
-Rank the results.
-
-### execute
-
-Execute the query.
-
-### clear
-
-Clear the query.
-
-### checkAPIResponse
-
-Checks the given response from the QueryAPI component
-
-Throws exception is the given response from the QueryAPI is malformed or contains an error code
-
-### isAllowedDimensionType
-
-Determines if the given type is a legal type of dimension
-
-### clearCache
-
-Clear the metadatas cache and the schemas poperty
-
-```js
->>>this.isCacheEmpty();
-false
->>>this.clearCache();
->>>this.isCacheEmpty();
-true
-```
-
-### getLevelIDFromIndex
-
-Get the level’s ID from its index
-
-### mapWithCaptionToSimpleMap
-
-Transform a deep map\<id:map\<caption\>\> with a caption attribute into a flat map\<id:caption\>
-
 **/
 analytics.query = (function() {
 
   var _queryAPI = null;
 
   /**
-   * Transform a deep map<id:map<caption>> with a caption attribute into a flat map<id:caption>
-   *
-   * @private
-   * @param {Object.<string, Object.<string, string>>} map - the deep map
-   * @return {Object.<string, string>} the flat map
-   */
+  ### Private functions
+
+  The following functions are all private functions.
+  They must not be used outside of the `analytics.qyery.cache` namespace.
+  **/
+
+  /**
+  ### *Object* **mapWithCaptionToSimpleMap**(*Object* map)
+
+  Transform a deep map\<id:map\<caption\>\> with a caption attribute into a flat map\<id:caption\>
+  **/
   function mapWithCaptionToSimpleMap (map) {
     var out = {};
     for (var key in map) {
@@ -231,7 +31,7 @@ analytics.query = (function() {
   /**
   ### *boolean* **getLevelIDFromIndex**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *integer* indexLevel)
 
-  Get the level's ID from its index
+  Get the level's ID from its index.
   It throws an error when no schema, cube, dimension, hierarchy or level
   are found in the database with the given identifiers.
   **/
@@ -243,6 +43,16 @@ analytics.query = (function() {
     return levels[indexLevel];
   }
 
+  /**
+  ### Public functions
+
+  All the *getXX* functions could throw the following:
+
+  * QueryAPINotProvidedError: the *queryAPI is not provided ;
+  * QueryAPIBadRequestError ;
+  * QueryAPINotSupportedError ;
+  * IllegalAPIResponseError ;
+  **/
 
   var Query = {
 
@@ -257,21 +67,11 @@ analytics.query = (function() {
         return _queryAPI;
     },
 
-    //---------------------
-    //---- METADATA -------
-    //---------------------
-
     /**
-     * Get schemas list
-     *
-     * @public
-     * @return {Object.<string, string>} a key-value map with one row by schema. {id: caption}
-     *
-     * @throws {Query.QueryAPINotProvidedError} The queryAPI is not provided to Query
-     * @throws {Query.QueryAPIBadRequestError}
-     * @throws {Query.QueryAPINotSupportedError}
-     * @throws {Query.IllegalAPIResponseError}
-     */
+    ### *Object* query.**getSchemas**()
+
+    Get schemas list as a key-value map with one row by schema. `{id: caption}`
+    **/
     getSchemas : function () {
 
       if (this.cache.isCacheEmpty()) {
@@ -290,18 +90,11 @@ analytics.query = (function() {
     },
 
     /**
-     * Get cubes of a schema
-     *
-     * @public
-     * @param {string} idSchema
-     * @return {Object.<string, string>} a key-value map with one row by schema. {id: caption}
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.QueryAPIBadRequestError}
-     * @throws {Query.QueryAPINotSupportedError}
-     * @throws {Query.IllegalAPIResponseError}
-     * @throws {string} if no schema is found in the database
-     */
+    ### *Object* query.**getCubes**(*string* idSchema)
+
+    Get cubes list of a schema as a key-value map with one row by cube. `{id: caption}`.
+    It can throw an error is the schema is not found in the database.
+    **/
     getCubes : function(idSchema) {
 
       if (!this.cache.isSchemaInCache(idSchema))
@@ -323,34 +116,26 @@ analytics.query = (function() {
     },
 
     /**
-     * Get mesures of a cube and a schema
-     *
-     * Measures are members of the only level of the only hierarchy of the dimension
-     * with type Measure
-     * @summary Get mesures of a cube and a schema
-     *
-     * @example
-     * {
-     *   'idMeasure1' : {
-     *       'caption' : 'theMeasureOne',
-     *       'description' : 'the description'
-     *   },
-     *   'idMeasure2' : {
-     *       'caption' : 'theMeasureTwo',
-     *       'description' : 'the description'
-     *   }
-     * }
-     *
-     * @public
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @return {Object.<string, Object>} the map
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.QueryAPIBadRequestError}
-     * @throws {Query.QueryAPINotSupportedError}
-     * @throws {string} if no schema, cube, dimension, hierarchy or level is found in the database
-     */
+    ### *Object* query.**getMesures**(*string* idSchema, *string* idCube)
+
+    Get mesures of a cube and a schema.
+    Measures are members of the only level of the only hierarchy of the dimension
+    with type Measure.
+    It can throw an error is the schema or the cube is not found in the database.
+
+    ```js
+    {
+      'idMeasure1' : {
+        'caption' : 'theMeasureOne',
+        'description' : 'the description'
+      },
+      'idMeasure2' : {
+        'caption' : 'theMeasureTwo',
+        'description' : 'the description'
+      }
+    }
+    ```
+    **/
     getMesures : function (idSchema, idCube) {
 
       if (!this.cache.isSchemaInCache(idSchema))
@@ -379,21 +164,12 @@ analytics.query = (function() {
     },
 
     /**
-     * Get a list of cubes and for each the measures of this cube
-     *
-     * @todo test this
-     *
-     * @param {string} idSchema
-     * @return {Object<Object>}
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.QueryAPIBadRequestError}
-     * @throws {Query.QueryAPINotSupportedError}
-     * @throws {Query.IllegalAPIResponseError}
-     * @throws {Query.DimensionNotInDatabaseError}
-     * @throws {Query.CubeNotInDatabaseError} The given cube doesn't exists
-     * @throws {Query.SchemaNotInDatabaseError} The given schema doesn't exists
-     */
+    ### *Object* query.**getCubesAndMesures**(*string* idSchema)
+
+    Get a list of cubes and for each the measures of this cube.
+    It can throw an error is the schema, the cube or the *Measure* dimension
+    is not found in the database.
+    **/
     getCubesAndMeasures : function (idSchema) {
       var out = {};
       var cubes = this.getCubes(idSchema);
@@ -410,25 +186,20 @@ analytics.query = (function() {
     },
 
     /**
-     * Get dimensions of a cube in a given schema
-     *
-     * This wil return a map of id : dimensionMap as the following example
-     * @summary Get dimensions of a cube in a given schema
-     *
-     * @example
-     * 'idDimension' : {
-     *     'caption' : 'theCaption',
-     *     'type' : 'theType'
-     * }
-     *
-     * @public
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @return {Object.<string, Object>} the map or {} if the dimensions list of the given cube is empty
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.IllegalDimensionTypeError}
-     * @throws {string} if no schema or cube is found in the database
-     */
+    ### *Object* query.**getDimensions**(*string* idSchema, *string* idCube)
+
+    Get dimensions of a cube in a given schema or `{}` if the dimensions list
+    of the given cube is empty.
+    It can throw an error is the schema or the cube is not found in
+    the database.
+
+    ```js
+    'idDimension' : {
+      'caption' : 'theCaption',
+      'type' : 'theType'
+    }
+    ```
+    **/
     getDimensions : function getDimensions(idSchema, idCube) {
 
       if (!this.cache.isSchemaInCache(idSchema))
@@ -463,77 +234,48 @@ analytics.query = (function() {
     },
 
     /**
-     * Get the id of the geographic dimension
-     *
-     * @public
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @return {string} id of the geographic dimension
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.CubeNotInDatabaseError} The given cube doesn't exists
-     * @throws {Query.SchemaNotInDatabaseError} The given schema doesn't exists
-     * @throws {Query.IllegalDimensionTypeError}
-     */
+    ### *string* query.**getGeoDimension**(*string* idSchema, *string* idCube)
+
+    Get the id of the geographic dimension.
+    It can throw an error is the schema or the cube is not found in
+    the database.
+    **/
     getGeoDimension : function (idSchema, idCube) {
-
       return this.getXXDimension(idSchema, idCube, "Geometry");
-
     },
 
     /**
-     * Get the id of the time dimension
-     *
-     * @public
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @return {string} id of the time dimension
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.CubeNotInDatabaseError} The given cube doesn't exists
-     * @throws {Query.SchemaNotInDatabaseError} The given schema doesn't exists
-     * @throws {Query.IllegalDimensionTypeError}
-     */
+    ### *string* query.**getTimeDimension**(*string* idSchema, *string* idCube)
+
+    Get the id of the time dimension.
+    It can throw an error is the schema or the cube is not found in
+    the database.
+    **/
     getTimeDimension : function (idSchema, idCube) {
-
       return this.getXXDimension(idSchema, idCube, "Time");
-
     },
 
     /**
-     * Get the id of the measure dimension
-     *
-     * @private
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @return {string} id of the measure dimension
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.CubeNotInDatabaseError} The given cube doesn't exists
-     * @throws {Query.SchemaNotInDatabaseError} The given schema doesn't exists
-     * @throws {Query.IllegalDimensionTypeError}
-     */
+    ### *string* query.**getMeasureDimension**(*string* idSchema, *string* idCube)
+
+    Get the id of the measure dimension
+    It can  throw an error is the schema or the cube is not found in
+    the database.
+
+    TODO set PRIVATE
+    **/
     getMeasureDimension : function (idSchema, idCube) {
-
       return this.getXXDimension(idSchema, idCube, "Measure");
-
     },
 
     /**
-     * Get the id of the XXXX dimension
-     *
-     * @private
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @param {string} type that we want to match
-     * @return {string} id of the XXXX dimension
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.DimensionNotInDatabaseError}
-     * @throws {Query.CubeNotInDatabaseError} The given cube doesn't exists
-     * @throws {Query.SchemaNotInDatabaseError} The given schema doesn't exists
-     * @throws {Query.IllegalDimensionTypeError} The given dimension type is not allowed
-     */
+    ### *string* query.**getXXDimension**(*string* idSchema, *string* idCube, *string* type)
+
+    Get the id of the dimension with type XX
+    It can  throw an error is the schema, the cube or no dimension with the
+    given type is not found in the database.
+    TODO set PRIVATE
+    **/
     getXXDimension : function (idSchema, idCube, type) {
       if (!this.isAllowedDimensionType(type))
         throw new Query.IllegalDimensionTypeError();
@@ -550,17 +292,10 @@ analytics.query = (function() {
     },
 
     /**
-     * Get the id of the geographical propery of a dimension
-     *
-     * @public
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @param {string} idDimension
-     * @param {string} idHierarchy
-     * @return {string} id of the geographical property or {null} if none found
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     */
+    ### *string* query.**getGeoProperty**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy)
+
+    Get the id of the geographical propery of a dimension or null if none found.
+    **/
     getGeoProperty : function (idSchema, idCube, idDimension, idHierarchy) {
 
       var levels = this.getLevels(idSchema, idCube, idDimension, idHierarchy);
@@ -577,22 +312,19 @@ analytics.query = (function() {
     },
 
     /**
-     *
-     * Get the list of hierarchies of a dimension
-     *
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @param {string} idDimension
-     *
-     * @return {Object<string, string>} map of dimensions associating id with caption.
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.QueryAPIBadRequestError}
-     * @throws {Query.QueryAPINotSupportedError}
-     * @throws {Query.IllegalAPIResponseError}
-     * @throws {string} if no schema, cube or dimension is found in the database
-     *
-     */
+    ### *Object* query.**getHierarchies**(*string* idSchema, *string* idCube, *string* idDimension)
+
+    Get the list of hierarchies of a dimension.
+    It can throw an error is the schema, the cube or the dimension is not found
+    in the database.
+
+    ```js
+    {
+      'idHierarchy1' : 'captionHierarchy1',
+      'idHierarchy2' : 'captionHierarchy2'
+    }
+    ```
+    **/
     getHierarchies : function (idSchema, idCube, idDimension) {
 
       if (!this.cache.isSchemaInCache(idSchema))
@@ -620,30 +352,20 @@ analytics.query = (function() {
     },
 
     /**
-     *
-     * Get the list of levels of a hierarchy. Note that Query hide the real level ID.
-     * For Query users, a level is identified by its position in the list.
-     * @summary Get the list of levels of a hierarchy
-     *
-     * @example
-     * [
-     *   'Countries', //caption of the level at 0 position
-     *   'Regions'    //caption of the level at 1 position
-     * ]
-     *
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @param {string} idDimension
-     * @param {string} idHierarchy
-     *
-     * @return {Array<string>} list of level captions
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.QueryAPIBadRequestError}
-     * @throws {Query.QueryAPINotSupportedError}
-     * @throws {Query.IllegalAPIResponseError}
-     * @throws {string} if no schema, cube, dimension or hierarchy is found in the database
-     */
+    ### *Array\<string\>* query.**getLevels**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy)
+
+    Get the list of levels of a hierarchy. This hides the real level ID.
+    For *analytics.query* users, a level is identified by its position in the list.
+    It can throw an error is the schema, the cube, the dimension or the hierarchy
+    is not found in the database.
+
+    ```js
+    [
+      'Countries', //caption of the level at 0 position
+      'Regions'    //caption of the level at 1 position
+    ]
+    ```
+    **/
     getLevels : function (idSchema, idCube, idDimension, idHierarchy) {
 
       if (!this.cache.isSchemaInCache(idSchema))
@@ -680,52 +402,43 @@ analytics.query = (function() {
     },
 
     /**
-     * Get the list of members
-     *
-     * If parentMember parameter is not set, returns the map of all members of the specified level with or
-     * without the properties values depending on the properties parameter.
-     *
-     * If parentMember parameter is set (parentMember being a member of the level idLevel), returns the map
-     * of all members descending from this member from the level idlevel + descendingLevel.
-     *
-     * Note that Query hide the real level ID. For Query users, a level is identified by its position in the list.
-     * @summary Get the list of members
-     *
-     * @todo cache
-     *
-     * @example
-     * {
-     *  "FR" : // member key
-     *    {
-     *      "caption" : "France",
-     *      "geometry" : {<geoJSONofFrance>}, // property area value
-     *      "area" : 123.5 // property area value
-     *    },
-     *  "BE" :
-     *    {
-     *      "caption" : "Belgium",
-     *      "geometry" : {<geoJSONofBelgium>},
-     *      "area" : 254.1
-     *    },
-     *    ...
-     * }
-     *
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @param {string} idDimension
-     * @param {string} idHierarchy
-     * @param {integer} indexLevel
-     * @param {boolean} [withProperties=false] Return the properties values of the members
-     * @param {string} [parentMember=] ID of the parent from which we want the childrens
-     * @param {integer} [descendingLevel=1] Number of descending levels if parentMember is specified
-     * @return {Object} list of level captions
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.QueryAPIBadRequestError}
-     * @throws {Query.QueryAPINotSupportedError}
-     * @throws {Query.IllegalAPIResponseError}
-     * @throws {string} if no schema, cube, dimension, hierarchy or level is found in the database
-     */
+    ### *Object* query.**getMembers**(*string* idSchema, *string* idCube,
+     *string* idDimension, *string* idHierarchy, *integer* indexLevel
+     [, *boolean* withProperties=false [, *string* parentMember
+     [, *integer* descendingLevel=1]]])
+
+    Get the list of members.
+
+    If `parentMember` parameter is not set, returns the map of all members of the
+    specified level with or without the properties values depending on the
+    properties parameter.
+
+    If `parentMember` parameter is set (`parentMember` being a member of the
+    level `idLevel`), returns the map of all members descending from this member
+    from the level `idlevel + descendingLevel`.
+
+    Note that this hides the real level ID. For *analytics.query* users, a level
+    is identified by its position in the list.
+
+    This can throw an error is the schema, the cube, the dimension, the hierarchy
+    or the level is not found in the database.
+
+    ```js
+    {
+     'FR' : // member key
+       {
+         'caption' : 'France',
+         'geometry' : {<geoJSONofFrance>}, // property geometry value
+       },
+     'BE' :
+       {
+         'caption' : 'Belgium',
+         'geometry' : {<geoJSONofBelgium>}
+       },
+       ...
+    }
+    ```
+    **/
     getMembers : function (idSchema, idCube, idDimension, idHierarchy, indexLevel, withProperties, parentMember, descendingLevel) {
 
       if (!this.cache.isSchemaInCache(idSchema))
@@ -784,49 +497,34 @@ analytics.query = (function() {
     },
 
     /**
-     * Get the list of member objects from their IDs
-     *
-     * Note that Query hide the real level ID. For Query users, a level is identified by its position in the list.
-     * @summary Get the list of member objects from their IDs
-     *
-     * @todo cache
-     *
-     * @example
-     * {
-     *  "FR" : // member key
-     *    {
-     *      "caption" : "France",
-     *      "geometry" : {<geoJSONofFrance>}, // property area value
-     *      "area" : 123.5 // property area value
-     *    },
-     *  "BE" :
-     *    {
-     *      "caption" : "Belgium",
-     *      "geometry" : {<geoJSONofBelgium>},
-     *      "area" : 254.1
-     *    },
-     *    ...
-     * }
-     *
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @param {string} idDimension
-     * @param {string} idHierarchy
-     * @param {integer} indexLevel
-     * @param {Array.<string>} membersIds the IDs of the members
-     * @param {boolean} [withProperties=false] Return the properties values of the members
-     * @return {Object} list of level captions
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.LevelNotInDatabaseError}
-     * @throws {Query.HierarchyNotInDatabaseError}
-     * @throws {Query.DimensionNotInDatabaseError}
-     * @throws {Query.CubeNotInDatabaseError}
-     * @throws {Query.SchemaNotInDatabaseError}
-     * @throws {Query.QueryAPIBadRequestError}
-     * @throws {Query.QueryAPINotSupportedError}
-     * @throws {Query.IllegalAPIResponseError}
-     */
+    ### *Object* query.**getMembersInfos**(*string* idSchema, *string* idCube,
+     *string* idDimension, *string* idHierarchy, *integer* indexLevel,
+     *Array* membersIds [, *boolean* withProperties=false])
+
+    Get the list of member objects from their IDs.
+
+    Note that this hides the real level ID. For *analytics.query* users, a level
+    is identified by its position in the list.
+
+    This can throw an error is the schema, the cube, the dimension, the hierarchy
+    or the level is not found in the database.
+
+    ```js
+    {
+     'FR' : // member key
+       {
+         'caption' : 'France',
+         'geometry' : {<geoJSONofFrance>} // property geometry value
+       },
+     'BE' :
+       {
+         'caption' : 'Belgium',
+         'geometry' : {<geoJSONofBelgium>}
+       },
+       ...
+    }
+    ```
+    **/
     getMembersInfos : function (idSchema, idCube, idDimension, idHierarchy, indexLevel, membersIds, withProperties) {
 
       if(typeof membersIds != "object")
@@ -868,38 +566,27 @@ analytics.query = (function() {
     },
 
     /**
-     * Get the list of properties of a level
-     *
-     * @example
-     * {
-     *   "geom" : {
-     *     "caption" : "Geom",
-     *     "type" : "Geometry"
-     *   },
-     *   "surf" : {
-     *     "caption" : "Surface",
-     *     "type" : "Standard"
-     *   }
-     * }
-     *
-     * @param {string} idSchema
-     * @param {string} idCube
-     * @param {string} idDimension
-     * @param {string} idHierarchy
-     * @param {integer} indexLevel the index of the level in the array of hierarchy
-     *
-     * @return {Object<string, Object<string, string>>} list of properties
-     *
-     * @throws {Query.QueryAPINotProvidedError}
-     * @throws {Query.LevelNotInDatabaseError}
-     * @throws {Query.HierarchyNotInDatabaseError}
-     * @throws {Query.DimensionNotInDatabaseError}
-     * @throws {Query.CubeNotInDatabaseError}
-     * @throws {Query.SchemaNotInDatabaseError}
-     * @throws {Query.QueryAPIBadRequestError}
-     * @throws {Query.QueryAPINotSupportedError}
-     * @throws {Query.IllegalAPIResponseError}
-     */
+    ### *Object* query.**getProperties**(*string* idSchema, *string* idCube,
+     *string* idDimension, *string* idHierarchy, *integer* indexLevel)
+
+    Get the list of properties of a level.
+
+    This can throw an error is the schema, the cube, the dimension, the hierarchy
+    or the level is not found in the database.
+
+    ```js
+    {
+      "geom" : {
+        "caption" : "Geom",
+        "type" : "Geometry"
+      },
+      "surf" : {
+        "caption" : "Surface",
+        "type" : "Standard"
+      }
+    }
+    ```
+    **/
     getProperties : function (idSchema, idCube, idDimension, idHierarchy, indexLevel) {
 
       if (!this.cache.isSchemaInCache(idSchema))
@@ -921,92 +608,82 @@ analytics.query = (function() {
       return this.cache.getPropertiesFromCache(idSchema, idCube, idDimension, idHierarchy, indexLevel);
     },
 
-    //------------
-    //--- DATA ---
-    //------------
-
     /**
-     * Specify the wube you want to work on
-     *
-     * @public
-     * @param {string} idCube
-     */
+    ### query.**drill**(*string* idCube)
+
+    Specifies the cube to work on.
+    **/
     drill : function(idCube) {
       this.queryAPI().drill(idCube);
     },
 
     /**
-     * Add the given measure to the set of measures you want to work on
-     *
-     * @public
-     * @param {string} idMeasure
-     */
+    ### query.**push**(*string* idMeasure)
+
+    Add the given measure to the set of measures to work on.
+    **/
     push : function(idMeasure) {
       this.queryAPI().push(idMeasure);
     },
 
     /**
-     * Remove the given measure to the set of measures you want to work on
-     *
-     * @public
-     * @param {string} idMeasure
-     */
+    ### query.**pull**(*string* idMeasure)
+
+    Remove the given measure to the set of measures to work on.
+    **/
     pull : function(idMeasure) {
       this.queryAPI().pull(idMeasure);
     },
 
     /**
-     * Add the given hierarchy to the list of agregates and filter on the given members
-     *
-     * @public
-     * @param {string} idHierarchy
-     * @param {Array<string>} [members] the IDs of the members you want to aggregate. All members of the hierarchy if undefined
-     * @param {boolean} [range=false] if you want all the members between only bound values you give in member's array
-     */
+    ### query.**slice**(*string* idHierarchy [, *Array\<string\>* members [, *boolean* range=false]])
+
+    Add the given hierarchy to the list of agregates and filter on the given members.
+
+    The user can specify the IDs of the members to aggregate; all members of the hierarchy if undefined.
+    The user can also indicate if *analytics.query* should filter on all the members between
+    bound values given in the `members` array with `range=true`.
+    **/
     slice : function(idHierarchy, members, range) {
       this.queryAPI().slice(idHierarchy, members, range);
     },
 
     /**
-     * Add dice behavior to a list of hierarchies, that is to say those hierarchies
-     * won't be completely aggregated.
-     *
-     * @public
-     * @param {Array<String>} hierarchies
-     */
+    ### query.**dice**(*Array\<string\>* hierarchies)
+
+    Add dice behavior to a list of hierarchies, that is to say those hierarchies
+    won't be completely aggregated.
+    **/
     dice : function (hierarchies) {
       this.queryAPI().dice(hierarchies);
     },
 
     /**
-     * Remove the given hierarchy of the selected agregates
-     *
-     * @public
-     * @param {string} idHierarchy
-     */
+    ### query.**project**(*string* idHierarchy)
+
+    Remove the given hierarchy of the selected agregates.
+    **/
     project : function(idHierarchy) {
       this.queryAPI().project(idHierarchy);
     },
 
     /**
-     * Filter
-     *
-     * @public
-     * @param {string} idHierarchy
-     * @param {Array<string>} [members] the IDs of the members. All members of the hierarchy if undefined
-     * @param {boolean} [range=false] if you want all the members between only bound values you give in member's array
-     */
+    ### query.**filter**(*string* idHierarchy [, *Array\<string\>* members [, *boolean* range=false]])
+
+    Filter
+    **/
     filter : function(idHierarchy, members, range) {
       this.queryAPI().filter(idHierarchy, members, range);
     },
 
     /**
-     * Executes the request. This is a synchronous operation
-     *
-     * @return {Object} the structured reply
-     */
-    execute : function() {
+    ### *Object* query.**execute**()
 
+    Execute the request.
+
+    This is a synchronous operation. This returns the structured reply.
+    **/
+    execute : function() {
       var response = this.queryAPI().execute();
 
       this.checkAPIResponse(response);
@@ -1014,27 +691,24 @@ analytics.query = (function() {
     },
 
     /**
-     * Flush all the request
-     */
+    ### query.**clear**()
+
+    Flush all the request.
+    **/
     clear : function() {
       this.queryAPI().clear();
     },
 
     /**
-     * Checks the given response from the QueryAPI component
-     *
-     * Throws exception is the given response from the QueryAPI is malformed
-     * or contains an error code
-     * @summary Checks the given response from the QueryAPI component
-     *
-     * @private
-     * @param {Object} response the response from QueryAPI
-     * @return {boolean} true for a regular response format
-     *
-     * @throws {Query.QueryAPIBadRequestError}
-     * @throws {Query.QueryAPINotSupportedError}
-     * @throws {Query.IllegalAPIResponseError}
-     */
+    ### *boolean* query.**checkAPIResponse**(*Object* response)
+
+    Check the given response from the QueryAPI component.
+
+    Throws exception is the given response from the QueryAPI is malformed
+    or contains an error code.
+
+    TODO set PRIVATE
+    **/
     checkAPIResponse : function(response) {
       if (response.error === 'BAD_REQUEST')
         throw new Query.QueryAPIBadRequestError();
@@ -1049,12 +723,12 @@ analytics.query = (function() {
     },
 
     /**
-     * Determines if the given type is a legal type of dimension
-     *
-     * @private
-     * @param {string} type
-     * @return {boolean} true for a legal dimension type
-     */
+    ### *boolean* query.**isAllowedDimensionType**(*string* type)
+
+    Determines if the given type is a legal type of dimension
+
+    TODO set PRIVATE
+    **/
     isAllowedDimensionType : function(type) {
       return ( (type === "Time") || (type == "Measure") || (type == "Standard") || (type == "Geometry") );
     },
