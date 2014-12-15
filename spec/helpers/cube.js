@@ -239,6 +239,17 @@ var cube = function (CubeId, Caption) {
       "description": description,
       "children": children
     };
+
+    if (hie.levels.length > 1) {
+      var parents = hie.levels[hie.levels.length - 2].members;
+      for (var parentId in parents) {
+        if (parents[parentId].children.indexOf(memberId) >= 0) {
+          lev.members[memberId].parent = parentId;
+          break;
+        }
+      }
+    }
+
     for (var property in properties) {
       lev.members[memberId][property] = properties[property];
     }
