@@ -67,6 +67,7 @@ analytics.state = (function() {
 
       _dimensions = [];
       analytics.data.dimension.nextI = 0;
+      analytics.display.resetChartsOptions();
       dc.filterAll();
       state.initDimensions();
       analytics.data.load();

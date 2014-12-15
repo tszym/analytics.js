@@ -139,6 +139,13 @@ analytics.charts.chart = (function () {
       return _chart;
     };
 
+    _chart.resetOptions = function () {
+      var options = analytics.charts[_chart.type()].options;
+      for (var option in options) {
+        _chart.setOption(option, options[option]);
+      }
+    };
+
     _chart.player = function () {
       return _player;
     };

@@ -619,6 +619,12 @@ analytics.display = (function() {
     display.render();
   };
 
+  display.resetChartsOptions = function () {
+    display.charts().forEach(function (chart) {
+      chart.resetOptions();
+    });
+  };
+
   /**
   ### Charts' filters
 
