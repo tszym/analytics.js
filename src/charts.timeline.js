@@ -21,8 +21,43 @@ analytics.charts.timeline = (function () {
     var superInitChartSpecific = _chart._initChartSpecific;
     _chart._initChartSpecific = function () {
       superInitChartSpecific();
-      _chart.element().margins({top: 10, right: 10, bottom: 58, left: 40});
+      _chart.element().margins({top: 10, right: 10, bottom: 100, left: 40});
     };
+
+    var superUpdateChartSpecific = _chart._updateChartSpecific;
+    _chart._updateChartSpecific = function () {
+      superUpdateChartSpecific();
+      var captions = getCaptions();
+      var format = d3.format(".3s");
+
+      _chart.element()
+        .title(function (d) {
+          var key = d.key ? d.key : d.data.key;
+          if (captions[key] === undefined) return (d.value ? format(d.value) : '');
+          return captions[key] + "\nValue: " + (d.value ? format(d.value) : 0); // + "[unit]";
+        });
+      _chart.element().xAxis().tickFormat(function(d) { return captions[d];});
+    };
+
+    function getCaptions () {
+      var dimension = _chart.dimensions()[0];
+      var metadatas = dimension.membersStack();
+      var previousLevelCaptions = {};
+      var captions = {};
+
+      var i, key, parent;
+      for (i = 0; i < metadatas.length; i++) {
+        captions = {};
+        for (key in metadatas[i]) {
+          parent = metadatas[i][key].parent;
+          captions[key] = previousLevelCaptions[parent] ? previousLevelCaptions[parent] + " - " : "";
+          captions[key] += metadatas[i][key].caption;
+        }
+        previousLevelCaptions = captions;
+      }
+
+      return captions;
+    }
 
     return _chart;
   };
