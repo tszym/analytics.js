@@ -106,6 +106,23 @@ analytics.query = (function() {
     return ( (type === 'Time') || (type == 'Measure') || (type == 'Standard') || (type == 'Geometry') );
   }
 
+  /**
+  ### **loadToDimensions**(*string* idSchema, *string* idCube, *string* idDimension)
+
+  Load metadata to the dimensions of the given cube.
+  It throws errors if the schema or the cube are not found in the database.
+  **/
+  function loadToDimensions (idSchema, idCube, idDimension) {
+    if (!Query.cache.isSchemaInCache(idSchema))
+      Query.getSchemas();
+
+    if (!Query.cache.isCubeInCache(idSchema, idCube))
+      Query.getCubes(idSchema);
+
+    if (!Query.cache.isDimensionInCache(idSchema, idCube, idDimension))
+      Query.getDimensions(idSchema, idCube);
+  }
+
 
   /**
   ### Public functions
@@ -355,14 +372,7 @@ analytics.query = (function() {
     **/
     getHierarchies : function (idSchema, idCube, idDimension) {
 
-      if (!this.cache.isSchemaInCache(idSchema))
-        this.getSchemas();
-
-      if (!this.cache.isCubeInCache(idSchema, idCube))
-        this.getCubes(idSchema);
-
-      if (!this.cache.isDimensionInCache(idSchema, idCube, idDimension))
-        this.getDimensions(idSchema, idCube);
+      loadToDimensions(idSchema, idCube, idDimension);
 
       if (Object.keys(this.cache.getHierarchiesFromCache(idSchema, idCube, idDimension)).length === 0) {
         var replyHierarchies = this.queryAPI().explore(new Array(idSchema, idCube, idDimension));
@@ -396,14 +406,7 @@ analytics.query = (function() {
     **/
     getLevels : function (idSchema, idCube, idDimension, idHierarchy) {
 
-      if (!this.cache.isSchemaInCache(idSchema))
-        this.getSchemas();
-
-      if (!this.cache.isCubeInCache(idSchema, idCube))
-        this.getCubes(idSchema);
-
-      if (!this.cache.isDimensionInCache(idSchema, idCube, idDimension))
-        this.getDimensions(idSchema, idCube);
+      loadToDimensions(idSchema, idCube, idDimension);
 
       if (!this.cache.isHierarchyInCache(idSchema, idCube, idDimension, idHierarchy))
         this.getHierarchies(idSchema, idCube, idDimension);
@@ -468,15 +471,7 @@ analytics.query = (function() {
     ```
     **/
     getMembers : function (idSchema, idCube, idDimension, idHierarchy, indexLevel, withProperties, parentMember, descendingLevel) {
-
-      if (!this.cache.isSchemaInCache(idSchema))
-        this.getSchemas();
-
-      if (!this.cache.isCubeInCache(idSchema, idCube))
-        this.getCubes(idSchema);
-
-      if (!this.cache.isDimensionInCache(idSchema, idCube, idDimension))
-        this.getDimensions(idSchema, idCube);
+      loadToDimensions(idSchema, idCube, idDimension);
 
       if (!this.cache.isHierarchyInCache(idSchema, idCube, idDimension, idHierarchy))
         this.getHierarchies(idSchema, idCube, idDimension);
@@ -617,14 +612,7 @@ analytics.query = (function() {
     **/
     getProperties : function (idSchema, idCube, idDimension, idHierarchy, indexLevel) {
 
-      if (!this.cache.isSchemaInCache(idSchema))
-        this.getSchemas();
-
-      if (!this.cache.isCubeInCache(idSchema, idCube))
-        this.getCubes(idSchema);
-
-      if (!this.cache.isDimensionInCache(idSchema, idCube, idDimension))
-        this.getDimensions(idSchema, idCube);
+      loadToDimensions(idSchema, idCube, idDimension);
 
       if (!this.cache.isHierarchyInCache(idSchema, idCube, idDimension, idHierarchy))
         this.getHierarchies(idSchema, idCube, idDimension);
