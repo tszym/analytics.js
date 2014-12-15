@@ -33,6 +33,15 @@ module.exports = function (grunt) {
           includePath: 'src/'
         },
       },
+      fixtures: {
+        src: 'spec/helpers/fixtures.srcjs',
+        dest: 'spec/helpers/fixtures.js',
+        options: {
+          includeRegexp: /fileContent\(baseUrl\+"([^"]+)"\)/,
+          duplicates: false,
+          template: '"{{ file }}"'
+        },
+      }
     },
     uglify: {
       jsmin: {
@@ -66,7 +75,7 @@ module.exports = function (grunt) {
         src: ['src/**/*.js','spec/**/*.js','Gruntfile.js'],
         options: {
           indent: 2,
-          ignores: ['**/*.min.js', 'spec/dependancies/*'],
+          ignores: ['**/*.min.js', 'spec/dependancies/*', 'spec/helpers/fixtures.js'],
           loopfunc: true
         }
       }
