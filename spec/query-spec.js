@@ -14,19 +14,19 @@ describe('analytics.query', function() {
 
   describe('getXXDimension', function () {
     it('should return the expected id for geometry', function () {
-      expect(analytics.query.getXXDimension('Olap', 'C', 'Geometry')).toEqual('[Zone]');
+      expect(analytics.query._getXXDimension('Olap', 'C', 'Geometry')).toEqual('[Zone]');
     });
 
     it('should return the expected id for time', function () {
-      expect(analytics.query.getXXDimension('Olap', 'C', 'Time')).toEqual('[Time]');
+      expect(analytics.query._getXXDimension('Olap', 'C', 'Time')).toEqual('[Time]');
     });
 
     it('should return the expected id for Standard', function () {
-      expect(analytics.query.getXXDimension('Olap', 'C', 'Standard')).toEqual('[Product]');
+      expect(analytics.query._getXXDimension('Olap', 'C', 'Standard')).toEqual('[Product]');
     });
 
     it('should return the expected id for Measure', function () {
-      expect(analytics.query.getXXDimension('Olap', 'C', 'Measure')).toEqual('_measures');
+      expect(analytics.query._getXXDimension('Olap', 'C', 'Measure')).toEqual('_measures');
     });
   });
 
@@ -142,8 +142,8 @@ describe('analytics.query', function() {
       var expected = '_measures';
 
       it('should return the expected id of dimension', function () {
-        expect(analytics.query.getMeasureDimension('Olap', 'C')).toEqual(expected);
-        expect(analytics.query.getMeasureDimension('Olap', 'C')).toEqual(expected);
+        expect(analytics.query._getMeasureDimension('Olap', 'C')).toEqual(expected);
+        expect(analytics.query._getMeasureDimension('Olap', 'C')).toEqual(expected);
       });
     });
 

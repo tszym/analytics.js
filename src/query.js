@@ -44,6 +44,70 @@ analytics.query = (function() {
   }
 
   /**
+  ### *string* **getMeasureDimension**(*string* idSchema, *string* idCube)
+
+  Get the id of the measure dimension.
+  It can  throw an error is the schema or the cube is not found in
+  the database.
+  **/
+  function getMeasureDimension (idSchema, idCube) {
+    return getXXDimension(idSchema, idCube, 'Measure');
+  }
+
+  /**
+  ### *string* **getXXDimension**(*string* idSchema, *string* idCube, *string* type)
+
+  Get the id of the dimension with type XX.
+  It can  throw an error is the schema, the cube or no dimension with the
+  given type is not found in the database.
+  **/
+  function getXXDimension (idSchema, idCube, type) {
+    if (!isAllowedDimensionType(type))
+      throw new Query.IllegalDimensionTypeError();
+
+    // Retrieve all dimensions to get it in cache
+    Query.getDimensions(idSchema, idCube);
+    // Get from cache to have all dimensions, with the Measure one
+    var dimensions = Query.cache.getDimensionsFromCache(idSchema, idCube);
+    for (var key in dimensions) {
+      if (dimensions[key].type == type)
+        return key;
+    }
+    throw "There's no dimension of type "+type+" in cube "+idCube+" of schema "+idSchema;
+  }
+
+  /**
+  ### *boolean* **checkAPIResponse**(*Object* response)
+
+  Check the given response from the QueryAPI component.
+
+  Throws exception is the given response from the QueryAPI is malformed
+  or contains an error code.
+  **/
+  function checkAPIResponse (response) {
+    if (response.error === 'BAD_REQUEST')
+      throw new Query.QueryAPIBadRequestError();
+    if (response.error === 'NOT_SUPPORTED')
+      throw new Query.QueryAPINotSupportedError();
+    if (response.error === 'SERVER_ERROR')
+      throw new Query.QueryAPIServerError();
+    if (response.error === undefined || response.data === undefined || response === {})
+      throw new Query.IllegalAPIResponseError();
+
+    return true;
+  }
+
+  /**
+  ### *boolean* **isAllowedDimensionType**(*string* type)
+
+  Determines if the given type is a legal type of dimension
+  **/
+  function isAllowedDimensionType (type) {
+    return ( (type === 'Time') || (type == 'Measure') || (type == 'Standard') || (type == 'Geometry') );
+  }
+
+
+  /**
   ### Public functions
 
   All the *getXX* functions could throw the following:
@@ -76,7 +140,7 @@ analytics.query = (function() {
 
       if (this.cache.isCacheEmpty()) {
         var replySchemas = this.queryAPI().explore([]);
-        this.checkAPIResponse(replySchemas);
+        checkAPIResponse(replySchemas);
 
         var flatSchemasMap = mapWithCaptionToSimpleMap(replySchemas.data);
         for (var key in flatSchemasMap) {
@@ -102,7 +166,7 @@ analytics.query = (function() {
 
       if (Object.keys(this.cache.getCubesFromCache(idSchema)).length === 0) {
         var replyCubes = this.queryAPI().explore(new Array(idSchema));
-        this.checkAPIResponse(replyCubes);
+        checkAPIResponse(replyCubes);
         var flatCubesMap = mapWithCaptionToSimpleMap(replyCubes.data);
 
         for (var key in flatCubesMap) {
@@ -147,7 +211,7 @@ analytics.query = (function() {
       if (Object.keys(this.cache.getDimensionsFromCache(idSchema, idCube)).length === 0)
         this.getDimensions(idSchema, idCube);
 
-      var idDimension = this.getMeasureDimension(idSchema, idCube);
+      var idDimension = getMeasureDimension(idSchema, idCube);
       var idHierarchy;
 
       var hierarchies = this.getHierarchies(idSchema, idCube, idDimension);
@@ -175,7 +239,7 @@ analytics.query = (function() {
       var cubes = this.getCubes(idSchema);
 
       for (var key in cubes) {
-        out[key] = { "caption" : cubes[key] , "measures" : {}};
+        out[key] = { 'caption' : cubes[key] , 'measures' : {}};
         var measures = this.getMesures(idSchema, key);
         for (var idMeasure in measures) {
           out[key].measures[idMeasure] = measures[idMeasure];
@@ -213,7 +277,7 @@ analytics.query = (function() {
 
       if (Object.keys(this.cache.getDimensionsFromCache(idSchema, idCube)).length === 0) {
         var replyDimensions = this.queryAPI().explore(new Array(idSchema, idCube));
-        this.checkAPIResponse(replyDimensions);
+        checkAPIResponse(replyDimensions);
 
         for (var key in replyDimensions.data) {
           var dim = replyDimensions.data[key];
@@ -241,7 +305,7 @@ analytics.query = (function() {
     the database.
     **/
     getGeoDimension : function (idSchema, idCube) {
-      return this.getXXDimension(idSchema, idCube, "Geometry");
+      return getXXDimension(idSchema, idCube, 'Geometry');
     },
 
     /**
@@ -252,43 +316,7 @@ analytics.query = (function() {
     the database.
     **/
     getTimeDimension : function (idSchema, idCube) {
-      return this.getXXDimension(idSchema, idCube, "Time");
-    },
-
-    /**
-    ### *string* query.**getMeasureDimension**(*string* idSchema, *string* idCube)
-
-    Get the id of the measure dimension
-    It can  throw an error is the schema or the cube is not found in
-    the database.
-
-    TODO set PRIVATE
-    **/
-    getMeasureDimension : function (idSchema, idCube) {
-      return this.getXXDimension(idSchema, idCube, "Measure");
-    },
-
-    /**
-    ### *string* query.**getXXDimension**(*string* idSchema, *string* idCube, *string* type)
-
-    Get the id of the dimension with type XX
-    It can  throw an error is the schema, the cube or no dimension with the
-    given type is not found in the database.
-    TODO set PRIVATE
-    **/
-    getXXDimension : function (idSchema, idCube, type) {
-      if (!this.isAllowedDimensionType(type))
-        throw new Query.IllegalDimensionTypeError();
-
-      // Retrieve all dimensions to get it in cache
-      this.getDimensions(idSchema, idCube);
-      // Get from cache to have all dimensions, with the Measure one
-      var dimensions = this.cache.getDimensionsFromCache(idSchema, idCube);
-      for (var key in dimensions) {
-        if (dimensions[key].type == type)
-          return key;
-      }
-      throw "There's no dimension of type "+type+" in cube "+idCube+" of schema "+idSchema;
+      return getXXDimension(idSchema, idCube, 'Time');
     },
 
     /**
@@ -338,7 +366,7 @@ analytics.query = (function() {
 
       if (Object.keys(this.cache.getHierarchiesFromCache(idSchema, idCube, idDimension)).length === 0) {
         var replyHierarchies = this.queryAPI().explore(new Array(idSchema, idCube, idDimension));
-        this.checkAPIResponse(replyHierarchies);
+        checkAPIResponse(replyHierarchies);
         var flatHierarchiesMap = mapWithCaptionToSimpleMap(replyHierarchies.data);
 
         for (var key in flatHierarchiesMap) {
@@ -382,7 +410,7 @@ analytics.query = (function() {
 
       if (this.cache.getLevelsFromCache(idSchema, idCube, idDimension, idHierarchy).length === 0) {
         var reply = this.queryAPI().explore(new Array(idSchema, idCube, idDimension, idHierarchy), true);
-        this.checkAPIResponse(reply);
+        checkAPIResponse(reply);
 
         var out = [];
         for (var index=0; index < reply.data.length; index++) {
@@ -473,7 +501,7 @@ analytics.query = (function() {
         reply = this.queryAPI().explore(new Array(idSchema, idCube, idDimension, idHierarchy, idLevel, parentMember), withProperties, descendingLevel);
       }
 
-      this.checkAPIResponse(reply);
+      checkAPIResponse(reply);
 
       if (withProperties === true && reply.data != {}) {
 
@@ -527,7 +555,7 @@ analytics.query = (function() {
     **/
     getMembersInfos : function (idSchema, idCube, idDimension, idHierarchy, indexLevel, membersIds, withProperties) {
 
-      if(typeof membersIds != "object")
+      if(typeof membersIds != 'object')
         throw new Error("You provided an illegal parameter. Array expected");
 
       if (!this.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel)) {
@@ -537,12 +565,12 @@ analytics.query = (function() {
       }
 
       // Default values for parameters
-      withProperties = typeof withProperties !== "undefined" ? withProperties : false;
+      withProperties = typeof withProperties !== 'undefined' ? withProperties : false;
 
       var idLevel = this.getLevelIDFromIndex(idSchema, idCube, idDimension, idHierarchy, indexLevel);
 
       var reply = this.queryAPI().explore(new Array(idSchema, idCube, idDimension, idHierarchy, idLevel, membersIds), withProperties, 0);
-      this.checkAPIResponse(reply);
+      checkAPIResponse(reply);
 
       if (withProperties === true && reply.data != {}) {
 
@@ -686,7 +714,7 @@ analytics.query = (function() {
     execute : function() {
       var response = this.queryAPI().execute();
 
-      this.checkAPIResponse(response);
+      checkAPIResponse(response);
       return response.data;
     },
 
@@ -697,40 +725,6 @@ analytics.query = (function() {
     **/
     clear : function() {
       this.queryAPI().clear();
-    },
-
-    /**
-    ### *boolean* query.**checkAPIResponse**(*Object* response)
-
-    Check the given response from the QueryAPI component.
-
-    Throws exception is the given response from the QueryAPI is malformed
-    or contains an error code.
-
-    TODO set PRIVATE
-    **/
-    checkAPIResponse : function(response) {
-      if (response.error === 'BAD_REQUEST')
-        throw new Query.QueryAPIBadRequestError();
-      if (response.error === 'NOT_SUPPORTED')
-        throw new Query.QueryAPINotSupportedError();
-      if (response.error === 'SERVER_ERROR')
-        throw new Query.QueryAPIServerError();
-      if (response.error === undefined || response.data === undefined || response === {})
-        throw new Query.IllegalAPIResponseError();
-
-      return (true);
-    },
-
-    /**
-    ### *boolean* query.**isAllowedDimensionType**(*string* type)
-
-    Determines if the given type is a legal type of dimension
-
-    TODO set PRIVATE
-    **/
-    isAllowedDimensionType : function(type) {
-      return ( (type === "Time") || (type == "Measure") || (type == "Standard") || (type == "Geometry") );
     },
 
     //---------------
@@ -804,6 +798,8 @@ analytics.query = (function() {
 
   Query.IllegalDimensionTypeError.prototype = new Error();
   Query.IllegalDimensionTypeError.prototype.constructor = Query.IllegalDimensionTypeError;
+
+  // importTest "query-test-accessors.js"
 
   return Query;
 
