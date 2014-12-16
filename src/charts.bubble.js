@@ -52,9 +52,9 @@ analytics.charts.bubble = (function () {
         .valueAccessor(function (p)       { return p.value[measures[1].id()]; })
         .radiusValueAccessor(function (p) { return p.value[measures[2].id()]; })
 
-        .x(d3.scale.linear().domain(dimension.domainWithPadding(extraMeasures, measures[0], 0.20))).xAxisPadding('20%')
-        .y(d3.scale.linear().domain(dimension.domainWithPadding(extraMeasures, measures[1], 0.15))).yAxisPadding('15%')
-        .r(d3.scale.linear().domain(dimension.domain           (extraMeasures, measures[2]      )))
+        .x(d3.scale.linear().domain(dimension.domainWithPadding(0.20, extraMeasures, measures[0]))).xAxisPadding('20%')
+        .y(d3.scale.linear().domain(dimension.domainWithPadding(0.15, extraMeasures, measures[1]))).yAxisPadding('15%')
+        .r(d3.scale.linear().domain(dimension.domain           (      extraMeasures, measures[2])))
 
         .xAxisLabel(measures[0].caption())
         .yAxisLabel(measures[1].caption())
