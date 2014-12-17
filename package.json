@@ -14,6 +14,7 @@
   ],
   "homepage": "https://github.com/loganalysis/analytics-js",
   "bugs": "https://github.com/loganalysis/analytics-js/issues",
+  "author" : "I.D. & M.D. & M.H. & J.L.B. & N.M. & T.R. & C.R. & T.S.",
   "contributors": [
     "Ibrahim Daoudi",
     "Mickaël Deprez",
