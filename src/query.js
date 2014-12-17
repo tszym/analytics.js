@@ -250,6 +250,24 @@ analytics.query = (function() {
     Get a list of cubes and for each the measures of this cube.
     It can throw an error is the schema, the cube or the *Measure* dimension
     is not found in the database.
+
+    ```js
+    {
+      'C' : {
+        caption : 'Le cube',
+        measures : {
+          'E' : {
+            caption : 'Export',
+            description : 'Export desc'
+          },
+          'I' : {
+            caption : 'Import',
+            description : 'Import desc'
+          }
+        }
+      }
+    }
+    ```
     **/
     getCubesAndMeasures : function (idSchema) {
       var out = {};
@@ -276,8 +294,9 @@ analytics.query = (function() {
 
     ```js
     'idDimension' : {
-      'caption' : 'theCaption',
-      'type' : 'theType'
+      caption : 'theCaption',
+      type : 'theType',
+      description : 'the desc'
     }
     ```
     **/
@@ -458,13 +477,15 @@ analytics.query = (function() {
     {
      'FR' : // member key
        {
-         'caption' : 'France',
-         'geometry' : {<geoJSONofFrance>}, // property geometry value
+         caption : 'France',
+         description : 'France description',
+         Geom : '<geoJSONofFrance>', // property geometry value (string|object)
        },
      'BE' :
        {
-         'caption' : 'Belgium',
-         'geometry' : {<geoJSONofBelgium>}
+         caption : 'Belgium',
+         description : 'Belgium description',
+         Geom : '<geoJSONofBelgium>'
        },
        ...
     }
@@ -536,13 +557,15 @@ analytics.query = (function() {
     {
      'FR' : // member key
        {
-         'caption' : 'France',
-         'geometry' : {<geoJSONofFrance>} // property geometry value
+         caption : 'France',
+         description : 'France description',
+         Geom : {<geoJSONofFrance>} // property geometry value
        },
      'BE' :
        {
-         'caption' : 'Belgium',
-         'geometry' : {<geoJSONofBelgium>}
+         caption : 'Belgium',
+         description : 'Belgium description',
+         Geom : {<geoJSONofBelgium>}
        },
        ...
     }
@@ -599,13 +622,15 @@ analytics.query = (function() {
 
     ```js
     {
-      "geom" : {
-        "caption" : "Geom",
-        "type" : "Geometry"
+      'Geom' : {
+        caption : 'Geom',
+        description : 'Geom desc',
+        type : 'Geometry'
       },
-      "surf" : {
-        "caption" : "Surface",
-        "type" : "Standard"
+      'surf' : {
+        caption : 'Surface',
+        description : 'Geom desc',
+        type : 'Standard'
       }
     }
     ```
