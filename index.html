@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Disabling responsiveness
+    <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+    <title> Analytics - example.com </title>
+
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/assets.min.css" rel="stylesheet"/>
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/ext-compatibility.css" rel="stylesheet" />
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/base.css" rel="stylesheet" />
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/dc.css">
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/analysis_view.css">
+      <link rel="stylesheet" type="text/css" charset="utf-8" href="css/pnotify.custom.min.css">
+      <style>
+      #wrap { padding: 0px; }
+      </style>
+  </head>
+
+  <body class="analytics">
+
+
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header col-md-2">
+          <a class="navbar-brand" href="/">GeoNode</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active">
+              <a href="#">Analytics</a>
+            </li>
+            <li id="nav_layers">
+              <a href="#">Layers</a>
+            </li>
+            <li id="nav_maps">
+              <a href="#">Maps</a>
+            </li>
+            <li id="nav_documents">
+              <a href="#">Documents</a>
+            </li>
+            <li id="nav_people">
+              <a href="#">People</a>
+            </li>
+            <li id="nav_groups">
+              <a href="#">Groups</a>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+
+
+  <div id="wrap">
+
+    <div class="modal fade" id="modal_analysis" style="display:none">
+      <form id="permission_form" accept-charset="UTF-8" method="post" class="modal-form" action="/analytics/new/data/">
+        <div class="modal-dialog modal-content">
+          <div class="modal-header">
+            <a class="close" data-dismiss="modal">×</a>
+            <h3>Save Analysis</h3>
+          </div>
+          <div class="modal-body" id="permissions-body" >
+            <div class="control-group">
+              <label class="control-label"><strong>Titre:</strong></label>
+              <div class="controls">
+                <input type="text" name="title" class="user-select" id="title-save" />
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label"><strong>Résumé:</strong></label>
+              <div class="controls">
+                <textarea name="abstract" rows="8" id="abstract-save"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a href="#" class="btn btn-default" data-dismiss="modal">Cancel</a>
+            <a href="#" class="btn btn-primary" id="analysis_submit">Save</a>
+          </div>
+        </div>
+      </form>
+    </div>
+
+
+
+<div class="modal fade" id="chartparams" style="display:none;">
+  <div class="modal-dialog modal-content">
+    <div class="modal-header">
+      <a class="close" data-dismiss="modal">×</a>
+      <h3>Chart parameters</h3>
+    </div>
+    <div class="modal-body modal-body form-horizontal">
+
+      <div class="form-group">
+        <label for="chartparam-type" class="col-sm-3 control-label">Type:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-type">
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-dimension" class="col-sm-3 control-label">Dimension:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-dimension0" class="chartparam-dimension">
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-measure0" class="col-sm-3 control-label">X axis:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-measure0" class="chartparam-measure">
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-measure1" class="col-sm-3 control-label">Y axis:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-measure1" class="chartparam-measure">
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-measure2" class="col-sm-3 control-label">Z axis:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-measure2" class="chartparam-measure">
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-sort" class="col-sm-3 control-label">Sort by:</label>
+        <div class="col-sm-9">
+          <select id="chartparam-sort">
+            <option value="key">Alphabetical order</option>
+            <option value="valuedesc">Value (desc)</option>
+            <option value="valueasc">Value (asc)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-labels" class="col-sm-3 control-label">Show labels:</label>
+        <div class="col-sm-9">
+          <input type="checkbox" id="chartparam-labels" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-topK" class="col-sm-3 control-label">Number <em>k</em> of top values shown:</label>
+        <div class="col-sm-9">
+          <input type="number" id="chartparam-topK" />
+          <small>(Set to 0 to disable)</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-topKMeasure" class="col-sm-3 control-label">Measure used for top(<em>k</em>):</label>
+        <div class="col-sm-9">
+          <select id="chartparam-topKMeasure" class="chartparam-measure">
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="chartparam-playerTimeout" class="col-sm-3 control-label">Speed to play time (ms):</label>
+        <div class="col-sm-9">
+          <input type="number" min="50" id="chartparam-playerTimeout" />
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn btn-default" id="chartparams-cancel">Cancel</a>
+      <a href="#" class="btn btn-danger" id="chartparams-delete">Remove chart</a>
+      <a href="#" class="btn btn-primary" id="chartparams-set">Update chart</a>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal fade" id="dimparams" style="display:none;">
+  <div class="modal-dialog modal-content">
+    <div class="modal-header">
+      <a class="close" data-dismiss="modal">×</a>
+      <h3>Dimension parameters</h3>
+    </div>
+    <div class="modal-body modal-body form-horizontal">
+
+      <div class="form-group">
+        <label for="chartparam-sort" class="col-sm-3 control-label">Color scale:</label>
+        <div class="col-sm-9">
+          <button class="btn dropdown-toggle" id="dimparam-color-button" data-toggle="dropdown"></button>
+            <ul class="dropdown-menu" id="dimparam-color-dropdown">
+            </ul>
+            <input type="hidden" id="dimparam-color" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="dimparam-colors-nb" class="col-sm-3 control-label">Number of bins:</label>
+        <div class="col-sm-9">
+          <input type="number" min="3" max="9" id="dimparam-colors-nb" value="3" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="dimparam-scale" class="col-sm-3 control-label">Scale type:</label>
+        <div class="col-sm-9">
+          <select id="dimparam-scale">
+            <option value="quantize">Linear</option>
+            <!--<option value="linear">Linear gradient</option>-->
+            <option value="quantile">Quantile</option>
+            <option value="natural">Jenks Natural Breaks</option>
+            <!--<option value="log">Log</option>-->
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="dimparam-hideUnfiltered" class="col-sm-3 control-label">Hide unfiltered elements:</label>
+        <div class="col-sm-9">
+          <input type="checkbox" id="dimparam-hideUnfiltered" />
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn btn-default" data-dismiss="modal">Cancel</a>
+      <a href="#" class="btn btn-primary" id="dimparams-set">Update</a>
+    </div>
+
+  </div>
+</div>
+
+    <div id="toolbox">
+      <div class="pull-right">
+        <a id="addchart" class="btn btn-default btn-md" href="#"><i class="fa fa-plus"></i> Add a chart</a>
+        <a id="reset" class="btn btn-default btn-md" href="#"><i class="fa fa-refresh"></i> Reset Filters</a>
+        <a id="resize" class="btn btn-default"><i class="fa fa-arrows-v fa-nomargin"></i></a>
+        <a href="#modal_analysis" class="btn btn-primary" data-toggle="modal" disabled="disabled">Save Analysis</a>
+      </div>
+      <div id="fact-selector">&nbsp;</div>
+    </div>
+
+    <div id="columns">
+      <div class="chart-columns" id="left-pane"></div>
+      <div class="chart-columns chart-columns-sortable" id="middle-pane"></div>
+      <div class="chart-columns chart-columns-sortable" id="right-pane"></div>
+    </div>
+  </div>
+
+  <script src="js/jquery-2.1.1.min.js" type="application/javascript"></script>
+  <script src="js/jquery-ui.min.js" type="application/javascript"></script>
+  <script src="js/simple_statistics.min.js" type="application/javascript"></script>
+  <script src="js/d3.v3.min.js" type="application/javascript"></script>
+  <script src="js/colorbrewer.v1.min.js" type="application/javascript"></script>
+  <script src="js/crossfilter.min.js" type="application/javascript"></script>
+  <script src="js/crossfilter-server.min.js" type="application/javascript"></script>
+  <script src="js/dc.min.js" type="application/javascript"></script>
+  <script src="js/wicket.min.js" type="application/javascript" charset="utf-8"></script>
+  <script src="js/Save.js" type="application/javascript"></script>
+  <script src="js/pnotify.custom.min.js" type="application/javascript"></script>
+  <script src="js/jquery.resizableColumns.js" type="application/javascript"></script>
+  <script src="js/bootstrap.min.js" type="application/javascript"></script>
+  <script src="js/bootbox.min.js" type="application/javascript"></script>
+  <script src="js/cube.js" type="application/javascript"></script>
+  <script src="js/fixtures.js" type="application/javascript"></script>
+  <script src="js/analytics.min.js" type="application/javascript" charset="utf-8"></script>
+  <script>
+  analytics.init(generateAPI([c]));
+  </script>
+</body>
+</html>
