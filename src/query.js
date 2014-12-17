@@ -29,21 +29,6 @@ analytics.query = (function() {
   }
 
   /**
-  ### *boolean* **getLevelIDFromIndex**(*string* idSchema, *string* idCube, *string* idDimension, *string* idHierarchy, *integer* indexLevel)
-
-  Get the level's ID from its index.
-  It throws an error when no schema, cube, dimension, hierarchy or level
-  are found in the database with the given identifiers.
-  **/
-  function getLevelIDFromIndex (idSchema, idCube, idDimension, idHierarchy, indexLevel) {
-    var levels = Query.getLevels(idSchema, idCube, idDimension, idHierarchy);
-    if (typeof levels[indexLevel] == 'undefined')
-      throw 'The level you tried to use does not exists in the database!';
-
-    return levels[indexLevel];
-  }
-
-  /**
   ### *string* **getMeasureDimension**(*string* idSchema, *string* idCube)
 
   Get the id of the measure dimension.
@@ -576,16 +561,21 @@ analytics.query = (function() {
       if(typeof membersIds != 'object')
         throw new Error("You provided an illegal parameter. Array expected");
 
-      if (!this.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel)) {
+      loadToDimensions(idSchema, idCube, idDimension);
+
+      if (!this.cache.isHierarchyInCache(idSchema, idCube, idDimension, idHierarchy))
+        this.getHierarchies(idSchema, idCube, idDimension);
+
+      if (!this.cache.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel)) {
         this.getLevels(idSchema, idCube, idDimension, idHierarchy);
-        if (!this.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel))
+        if (!this.cache.isLevelInCache(idSchema, idCube, idDimension, idHierarchy, indexLevel))
           throw new Query.LevelNotInDatabaseError();
       }
 
       // Default values for parameters
       withProperties = typeof withProperties !== 'undefined' ? withProperties : false;
 
-      var idLevel = this.getLevelIDFromIndex(idSchema, idCube, idDimension, idHierarchy, indexLevel);
+      var idLevel = this.cache.getLevelIDFromIndex(idSchema, idCube, idDimension, idHierarchy, indexLevel);
 
       var reply = this.queryAPI().explore(new Array(idSchema, idCube, idDimension, idHierarchy, idLevel, membersIds), withProperties, 0);
       checkAPIResponse(reply);

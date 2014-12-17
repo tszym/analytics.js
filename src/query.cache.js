@@ -96,11 +96,11 @@ analytics.query.cache = (function () {
   };
 
   _cache.isLevelInCache = function (idSchema, idCube, idDimension, idHierarchy, indexLevel) {
-    var levels = _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels;
-
     if (isLevelsListEmpty(idSchema, idCube, idDimension, idHierarchy)) {
       return false;
     }
+
+    var levels = _metadata.schemas[idSchema].cubes[idCube].dimensions[idDimension].hierarchies[idHierarchy].levels;
 
     if (typeof indexLevel === 'string') {
       for (var level in levels) {
