@@ -22,7 +22,7 @@ analytics.charts.map = (function () {
 
     _chart._initChartSpecific = function () {
       _chart.element()
-        .colorCalculator(function (d) { return d ? _chart.element().colors()(d) : '#ccc'; })
+        .colorCalculator(function (d) { return isNaN(d) ? '#ccc' : _chart.element().colors()(d); })
 
         .projection(d3.geo.mercator());
 

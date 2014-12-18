@@ -19,7 +19,7 @@ analytics.charts.wordcloud = (function () {
 
     _chart._initChartSpecific = function () {
       _chart.element()
-        .colorCalculator(function (d) { return d ? _chart.element().colors()(d) : '#ccc'; });
+        .colorCalculator(function (d) { return isNaN(d) ? '#ccc' : _chart.element().colors()(d); });
     };
 
     return _chart;

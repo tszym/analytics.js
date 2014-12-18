@@ -27,7 +27,7 @@ analytics.charts.wordcloudWithLegend = (function () {
     _chart._initChartSpecific = function () {
       _chart.element()
         .showLegend(_chart.selector()+' .wordcloud-legend')
-        .colorCalculator(function (d) { return d ? _chart.element().colors()(d) : '#ccc'; });
+        .colorCalculator(function (d) { return isNaN(d) ? '#ccc' : _chart.element().colors()(d); });
 
       $(_chart.selector()+' .chart-header').css('cursor', 'pointer');
       $(_chart.selector()+' .chart-header').click(function () {

@@ -24,7 +24,7 @@ analytics.charts.bubble = (function () {
       _chart.element()
         .colorCalculator(function (d) {
           var measureId = analytics.state.measure().id();
-          return d.value[measureId] ? _chart.element().colors()(d.value[measureId]) : '#ccc';
+          return isNaN(d.value[measureId]) ? '#ccc' : _chart.element().colors()(d.value[measureId]);
         })
 
         .margins({top: 0, right: 0, bottom: 30, left: 45})
