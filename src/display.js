@@ -603,6 +603,16 @@ analytics.display = (function() {
     display.redraw();
   }
 
+  display.hideUnfilteredOnTimeline = function (hideUnfiltered) {
+    var option = false;
+    display.charts().forEach(function (chart) {
+      if (chart.type() == 'timeline')
+        option = chart.options().hideUnfiltered;
+        chart.setOption('hideUnfiltered', hideUnfiltered);
+    });
+    return option;
+  };
+
   display.freezeScalesAcross = function (dimension) {
     analytics.state.freezeDomainsAcross(dimension);
     display.charts().forEach(function (chart) {

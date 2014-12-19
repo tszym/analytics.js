@@ -406,12 +406,14 @@ analytics.charts.chart = (function () {
           el.children().toggleClass('fa-pause');
 
           if (_player === undefined) {
+            var oldOption = analytics.display.hideUnfilteredOnTimeline(false);
             analytics.display.freezeScalesAcross(_dimensions[0]);
             _player = analytics.charts.player(_chart);
             _player.callback(function () {
               el.children().toggleClass('fa-play');
               el.children().toggleClass('fa-pause');
 
+              analytics.display.hideUnfilteredOnTimeline(oldOption);
               analytics.display.unfreezeScales();
               _player = undefined;
             });
