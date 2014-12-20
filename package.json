@@ -1,6 +1,6 @@
 {
   "name": "analytics",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "license": "MIT",
   "copyright": "LogAnalysis 2014",
   "description": "Analytics is a JavaScript package to create a user-friendly Business Intelligence interface using dc.js.",
