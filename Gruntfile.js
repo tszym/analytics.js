@@ -86,11 +86,11 @@ module.exports = function (grunt) {
         tasks: ['build', 'copy']
       },
       jasmine_runner: {
-        files: ['spec/**/*.js'],
+        files: ['spec/**/*.js', 'spec/helpers/fixtures.srcjs', '!spec/helpers/fixtures.js'],
         tasks: ['jasmine:specs:build']
       },
       tests: {
-        files: ['src/**/*.js', 'spec/**/*.js'],
+        files: ['src/**/*.js', 'spec/**/*.js', 'spec/helpers/fixtures.srcjs', '!spec/helpers/fixtures.js'],
         tasks: ['test']
       },
       reload: {
