@@ -490,11 +490,12 @@ analytics.charts.chart = (function () {
         }
 
         $(_selector + ' .chart-title').empty()
+            .append('<span data-toggle="tooltip" title="Total of selected elements">Total:</span> ')
+            .append(totalSpan)                                             .append(' &bull; ')
             .append(measureTitle)                                          .append(' &bull; ')
             .append(_dimensions[0].levels()[_dimensions[0].currentLevel()]).append(' &bull; ')
             .append(dimensionTitle)                                        .append(' &bull; ')
-            .append(analytics.state.cube().caption())                      .append(' &bull; ')
-            .append('Total: ').append(totalSpan);
+            .append(analytics.state.cube().caption());
       }
     }
 
